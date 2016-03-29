@@ -6,9 +6,9 @@ public class PrototypeControllers : MonoBehaviour
     bool ragdolls;
     bool ik;
 
-    void Update ()
+    void LateUpdate()
     {
-	    if (Input.GetKeyDown(KeyCode.F1))
+        if (Input.GetKeyDown(KeyCode.F1))
         {
             ragdolls = !ragdolls;
             GameObject.FindObjectOfType<RagdollController>().SetRagdollActive(ragdolls);
@@ -17,6 +17,10 @@ public class PrototypeControllers : MonoBehaviour
         {
             ik = !ik;
             GameObject.FindObjectOfType<IKController>().ikActive = ik;
+        }
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            GameObject.FindObjectOfType<CameraShake>().RequestShake();
         }
     }
 }
