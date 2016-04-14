@@ -31,6 +31,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     float m_TurnAmount;
     float m_ForwardAmount;
     Vector3 m_GroundNormal;
+    Vector3 m_WallNormal;
     float m_CapsuleHeight;
     Vector3 m_CapsuleCenter;
     CapsuleCollider m_Capsule;
@@ -53,35 +54,48 @@ public class ThirdPersonCharacter : MonoBehaviour
         Move(move, crouch, jump, false);
     }
 
-    public void Move(Vector3 move, bool crouch, bool jump, bool wallHanging)
+    public void Move(Vector3 move, bool crouch, bool jump, bool climbing)
     {
         // convert the world relative moveInput vector into a local-relative
         // turn amount and forward amount required to head in the desired
         // direction.
         if (move.magnitude > 1f) move.Normalize();
         move = transform.InverseTransformDirection(move);
-        CheckGroundStatus();
-        move = Vector3.ProjectOnPlane(move, m_GroundNormal);
-        m_TurnAmount = Mathf.Atan2(move.x, move.z);
-        m_ForwardAmount = move.z;
 
-        ApplyExtraTurnRotation();
-
-        // control and velocity handling is different when grounded and airborne:
-        if (m_IsGrounded)
+        if (!climbing)
         {
-            HandleGroundedMovement(crouch, jump);
+            CheckGroundStatus();
+            move = Vector3.ProjectOnPlane(move, m_GroundNormal);
+            m_TurnAmount = Mathf.Atan2(move.x, move.z);
+            m_ForwardAmount = move.z;
+
+
+            ApplyExtraTurnRotation();       
+            
+            // control and velocity handling is different when grounded and airborne:
+            if (m_IsGrounded)
+            {
+                HandleGroundedMovement(crouch, jump);
+            }
+            else
+            {
+                HandleAirborneMovement();
+            }
+
+            ScaleCapsuleForCrouching(crouch);
+            PreventStandingInLowHeadroom();        
+            
+            // send input and other state parameters to the animator
+            UpdateAnimator(move);
         }
         else
         {
-            HandleAirborneMovement();
+            CheckWallStatus();
+            HandleClimbing(move);
         }
 
-        ScaleCapsuleForCrouching(crouch);
-        PreventStandingInLowHeadroom();
 
-        // send input and other state parameters to the animator
-        UpdateAnimator(move);
+
     }
 
     void ScaleCapsuleForCrouching(bool crouch)
@@ -162,8 +176,9 @@ public class ThirdPersonCharacter : MonoBehaviour
     void HandleAirborneMovement()
     {
         // apply extra gravity from multiplier:
-        Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
-        m_Rigidbody.AddForce(extraGravityForce);
+
+        //Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
+        //m_Rigidbody.AddForce(extraGravityForce);
 
         m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
     }
@@ -179,6 +194,12 @@ public class ThirdPersonCharacter : MonoBehaviour
             m_Animator.applyRootMotion = false;
             m_GroundCheckDistance = 0.1f;
         }
+    }
+
+    void HandleClimbing(Vector3 move)
+    {
+        transform.rotation = Quaternion.FromToRotation(Vector3.forward, -m_WallNormal);
+        transform.Translate(move * Time.deltaTime);
     }
 
     void ApplyExtraTurnRotation()
@@ -199,6 +220,20 @@ public class ThirdPersonCharacter : MonoBehaviour
             // we preserve the existing y part of the current velocity.
             v.y = m_Rigidbody.velocity.y;
             m_Rigidbody.velocity = v;
+        }
+    }
+
+    void CheckWallStatus()
+    {
+        RaycastHit hitInfo;
+#if UNITY_EDITOR
+        Debug.DrawLine(transform.position + Vector3.up * 0.5f, transform.position + Vector3.up * 0.5f + (transform.forward * 0.5f), Color.red);
+#endif
+        // 0.1f is a small offset to start the ray from inside the character
+        // it is also good to note that the transform position in the sample assets is at the base of the character
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
+        {
+            m_WallNormal = hitInfo.normal;
         }
     }
 
