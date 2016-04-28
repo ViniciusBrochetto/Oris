@@ -12,7 +12,8 @@ namespace UnityStandardAssets.Cameras
         // 	Camera Rig
         // 		Pivot
         // 			Camera
-
+		[SerializeField]
+		private Transform m_SecondaryTarget;
         [SerializeField]
         private float m_MoveSpeed = 1f;                      // How fast the rig will move to keep up with the target's position.
         [Range(0f, 10f)]
@@ -48,7 +49,20 @@ namespace UnityStandardAssets.Cameras
 
         protected void Update()
         {
-            HandleRotationMovement();
+			if (Input.GetKey (KeyCode.R)) 
+			{	
+				Quaternion targetRot = Quaternion.LookRotation (m_SecondaryTarget.position - transform.position, Vector3.up);
+				targetRot = Quaternion.Slerp(m_Pivot.rotation, targetRot, 3f * Time.deltaTime);
+				targetRot.eulerAngles = Vector3.Scale (targetRot.eulerAngles, new Vector3 (1f, 1f, 0f));
+				m_Pivot.rotation = targetRot;
+
+				m_TransformTargetRot = targetRot;
+			} 
+			else 
+			{
+				HandleRotationMovement();
+			}
+
             if (m_LockCursor && Input.GetMouseButtonUp(0))
             {
                 Cursor.lockState = m_LockCursor ? CursorLockMode.Locked : CursorLockMode.None;

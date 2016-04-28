@@ -3,19 +3,16 @@ using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 
 [RequireComponent(typeof(ThirdPersonCharacter))]
-[RequireComponent(typeof(ClimbController))]
-[RequireComponent(typeof(Rigidbody))]
 public class ThirdPersonUserControl : MonoBehaviour
 {
-    private Rigidbody m_Rigidbody;
-    private ClimbController m_ClimbController;
     private ThirdPersonCharacter m_Character; // A reference to the ThirdPersonCharacter on the object
     private Transform m_Cam;                  // A reference to the main camera in the scenes transform
     private Vector3 m_CamForward;             // The current forward direction of the camera
     private Vector3 m_Move;
     private bool m_Jump;                      // the world-relative desired move direction, calculated from the camForward and user input.
+    private bool m_JumpRelease;
     private bool m_Climb;
-    private ClimbInfo m_ClimbInfo;
+    private bool m_Roll;
 
 
     private void Start()
@@ -34,8 +31,6 @@ public class ThirdPersonUserControl : MonoBehaviour
 
         // get the third person character ( this should never be null due to require component )
         m_Character = GetComponent<ThirdPersonCharacter>();
-        m_Rigidbody = GetComponent<Rigidbody>();
-        m_ClimbController = GetComponent<ClimbController>();
     }
 
     private void Update()
@@ -44,58 +39,49 @@ public class ThirdPersonUserControl : MonoBehaviour
         {
             m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
         }
+        if (!m_JumpRelease)
+        {
+            m_JumpRelease = CrossPlatformInputManager.GetButtonUp("Jump");
+        }
+        if (!m_Roll)
+        {
+            m_Roll = Input.GetKeyDown(KeyCode.V);
+        }
 
         m_Climb = Input.GetKey(KeyCode.F);
     }
 
-    // Fixed update is called in sync with physics
     private void FixedUpdate()
     {
         // read inputs
         float h = CrossPlatformInputManager.GetAxis("Horizontal");
         float v = CrossPlatformInputManager.GetAxis("Vertical");
         bool crouch = Input.GetKey(KeyCode.C);
-        bool canHang = false;
 
-        if (m_Climb)
+        if (m_Character.m_IsClimbing)
         {
-            m_ClimbInfo = m_ClimbController.Climb();
-            canHang = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
-        }
-
-        // calculate move direction to pass to character
-        if (m_Cam != null)
-        {
-            // calculate camera relative direction to move:
-            if (canHang)
-            {
-                m_CamForward = Vector3.Scale(m_Cam.up, new Vector3(0, 1, 0)).normalized;
-                m_Rigidbody.useGravity = false;
-                m_Rigidbody.velocity = Vector3.zero;
-                m_Move = v * m_CamForward + h * m_Character.transform.right;
-            }
-            else
-            {
-                m_CamForward = Vector3.Scale(m_Cam.forward, new Vector3(1, 0, 1)).normalized;
-                m_Rigidbody.useGravity = true;
-                m_Move = v * m_CamForward + h * m_Cam.right;
-            }
-
-
+            m_CamForward = Vector3.Scale(m_Cam.up, new Vector3(0, 1, 0)).normalized;
+            //m_Rigidbody.useGravity = false;
+            //m_Rigidbody.velocity = Vector3.zero;
+            m_Move = v * m_CamForward + h * m_Character.transform.right;
         }
         else
         {
-            // we use world-relative directions in the case of no main camera
-            m_Move = v * Vector3.forward + h * Vector3.right;
+            // calculate camera relative direction to move:
+            m_CamForward = Vector3.Scale(m_Cam.forward, new Vector3(1, 0, 1)).normalized;
+            //m_Rigidbody.useGravity = true;
+            m_Move = v * m_CamForward + h * m_Cam.right;
         }
-#if !MOBILE_INPUT
+
         // walk speed multiplier
-        if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
-#endif
+        if (Input.GetKey(KeyCode.LeftShift))
+            m_Move *= 0.5f;
 
         // pass all parameters to the character control script
-        m_Character.Move(m_Move, crouch, m_Jump, canHang);
+        m_Character.Move(m_Move, crouch, m_Jump, m_JumpRelease, m_Climb, m_Roll);
         m_Jump = false;
+        m_JumpRelease = false;
+        m_Roll = false;
     }
 }
 

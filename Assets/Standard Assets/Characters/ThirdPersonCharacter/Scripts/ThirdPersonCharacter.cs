@@ -1,8 +1,10 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(CapsuleCollider))]
 [RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(ClimbController))]
 public class ThirdPersonCharacter : MonoBehaviour
 {
     [SerializeField]
@@ -11,6 +13,8 @@ public class ThirdPersonCharacter : MonoBehaviour
     float m_StationaryTurnSpeed = 180;
     [SerializeField]
     float m_JumpPower = 12f;
+    [SerializeField]
+    float m_RollPower = 12f;
     [Range(1f, 4f)]
     [SerializeField]
     float m_GravityMultiplier = 2f;
@@ -25,17 +29,29 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     Rigidbody m_Rigidbody;
     Animator m_Animator;
+
+    public bool m_IsClimbing;
     bool m_IsGrounded;
+    bool m_IsRolling;
+    bool m_IsCrouching;
+    bool m_IsPreparingJump;
+
+    bool m_CanClimb = false;
+    bool m_CanClimbNextFrame = false;
+
     float m_OrigGroundCheckDistance;
     const float k_Half = 0.5f;
     float m_TurnAmount;
     float m_ForwardAmount;
     Vector3 m_GroundNormal;
     Vector3 m_WallNormal;
+    Vector3 m_WallPosition;
     float m_CapsuleHeight;
     Vector3 m_CapsuleCenter;
     CapsuleCollider m_Capsule;
-    bool m_Crouching;
+
+    private ClimbController m_ClimbController;
+
 
     void Start()
     {
@@ -44,6 +60,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_Capsule = GetComponent<CapsuleCollider>();
         m_CapsuleHeight = m_Capsule.height;
         m_CapsuleCenter = m_Capsule.center;
+        m_ClimbController = GetComponent<ClimbController>();
 
         m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         m_OrigGroundCheckDistance = m_GroundCheckDistance;
@@ -51,61 +68,164 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     public void Move(Vector3 move, bool crouch, bool jump)
     {
-        Move(move, crouch, jump, false);
+        Move(move, crouch, jump, false, false, false);
     }
 
-    public void Move(Vector3 move, bool crouch, bool jump, bool climbing)
+    public void Move(Vector3 move, bool crouch, bool jump, bool jumpRelease, bool climb, bool roll)
     {
+        //if (!m_IsRolling)
+        //{
         // convert the world relative moveInput vector into a local-relative
         // turn amount and forward amount required to head in the desired
         // direction.
-        if (move.magnitude > 1f) move.Normalize();
+        if (move.magnitude > 1f)
+            move.Normalize();
+
         move = transform.InverseTransformDirection(move);
 
-        if (!climbing)
+        if (!temp_HangWait && m_CanClimb && climb)
         {
+            m_IsClimbing = true;
+            CheckWallStatus();
+
+            ClimbInfo m_ClimbInfo;
+            m_ClimbInfo = m_ClimbController.Climb(move * Time.deltaTime);
+            m_CanClimbNextFrame = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
+
+            m_ClimbInfo = m_ClimbController.Climb();
+            m_CanClimb = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
+
+            HandleClimbing(move, jump, jumpRelease, m_CanClimbNextFrame);
+        }
+        else
+        {
+            m_IsPreparingJump = false;
+            m_IsClimbing = false;
+            m_Rigidbody.useGravity = true;
+
             CheckGroundStatus();
+
             move = Vector3.ProjectOnPlane(move, m_GroundNormal);
             m_TurnAmount = Mathf.Atan2(move.x, move.z);
             m_ForwardAmount = move.z;
 
+            transform.eulerAngles = Vector3.Scale(transform.rotation.eulerAngles, Vector3.up);
 
-            ApplyExtraTurnRotation();       
-            
+            ApplyExtraTurnRotation();
+
+            if (climb)
+            {
+                ClimbInfo m_ClimbInfo;
+                m_ClimbInfo = m_ClimbController.Climb();
+                m_CanClimb = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
+            }
+
             // control and velocity handling is different when grounded and airborne:
             if (m_IsGrounded)
             {
-                HandleGroundedMovement(crouch, jump);
+                if (roll)
+                {
+                    StartCoroutine(HandleRoll(move));
+                }
+                else
+                {
+                    HandleGroundedMovement(crouch, jump);
+
+                    if (m_IsRolling)
+                    {
+                        transform.Translate(move * m_RollPower * Time.deltaTime);
+                    }
+                }
             }
             else
             {
-                HandleAirborneMovement();
+                HandleAirborneMovement(move);
             }
 
-            ScaleCapsuleForCrouching(crouch);
-            PreventStandingInLowHeadroom();        
-            
+            ScaleCapsuleForCrouch(crouch || m_IsRolling);
+            PreventStandingInLowHeadroom();
+
             // send input and other state parameters to the animator
             UpdateAnimator(move);
         }
-        else
-        {
-            CheckWallStatus();
-            HandleClimbing(move);
-        }
-
-
-
+        //}
     }
 
-    void ScaleCapsuleForCrouching(bool crouch)
+    void HandleClimbing(Vector3 move, bool jump, bool jumpRelease, bool canClimbNextFrame)
+    {
+        if (m_IsPreparingJump)
+        {
+            if (jumpRelease)
+            {
+                m_IsPreparingJump = false;
+                WallJump();
+                StartCoroutine(WallJumpTimer());
+                return;
+            }
+        }
+        else
+        {
+            if (jump)
+            {
+                m_IsPreparingJump = true;
+                return;
+            }
+
+            m_Rigidbody.useGravity = false;
+            m_Rigidbody.velocity = Vector3.zero;
+            transform.rotation = Quaternion.FromToRotation(Vector3.forward, -m_WallNormal);
+            transform.rotation.eulerAngles.Set(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0f);
+            transform.position = m_WallPosition - (transform.up * 0.5f) - transform.forward * 0.3f;
+
+            if (canClimbNextFrame)
+            {
+                transform.Translate(move * Time.deltaTime);
+            }
+            else
+            {
+                Debug.Log("Ã");
+            }
+        }
+    }
+
+    bool temp_HangWait = false;
+    IEnumerator WallJumpTimer()
+    {
+        temp_HangWait = true;
+        yield return new WaitForSeconds(0.7f);
+        temp_HangWait = false;
+    }
+
+    void WallJump()
+    {
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+
+        Vector3 m_CamForward = Vector3.Scale(Camera.main.transform.forward, new Vector3(1, 0, 1)).normalized;
+        Vector3 jumpDir = ((v * m_CamForward + h * Camera.main.transform.right)).normalized * m_JumpPower * 0.5f;
+
+
+        jumpDir.y = m_JumpPower;
+        m_Rigidbody.velocity = jumpDir;
+
+        if (jumpDir.y != m_JumpPower)
+            transform.localRotation = Quaternion.LookRotation(Vector3.Scale(m_Rigidbody.velocity, new Vector3(1, 0, 1)));
+
+
+        m_IsGrounded = false;
+        m_Animator.applyRootMotion = false;
+        m_GroundCheckDistance = 0.1f;
+        m_Rigidbody.useGravity = true;
+    }
+
+    void ScaleCapsuleForCrouch(bool crouch)
     {
         if (m_IsGrounded && crouch)
         {
-            if (m_Crouching) return;
+            if (m_IsCrouching) return;
             m_Capsule.height = m_Capsule.height / 2f;
             m_Capsule.center = m_Capsule.center / 2f;
-            m_Crouching = true;
+            m_IsCrouching = true;
         }
         else
         {
@@ -113,25 +233,25 @@ public class ThirdPersonCharacter : MonoBehaviour
             float crouchRayLength = m_CapsuleHeight - m_Capsule.radius * k_Half;
             if (Physics.SphereCast(crouchRay, m_Capsule.radius * k_Half, crouchRayLength, ~0, QueryTriggerInteraction.Ignore))
             {
-                m_Crouching = true;
+                m_IsCrouching = true;
                 return;
             }
             m_Capsule.height = m_CapsuleHeight;
             m_Capsule.center = m_CapsuleCenter;
-            m_Crouching = false;
+            m_IsCrouching = false;
         }
     }
 
     void PreventStandingInLowHeadroom()
     {
         // prevent standing up in crouch-only zones
-        if (!m_Crouching)
+        if (!m_IsCrouching)
         {
             Ray crouchRay = new Ray(m_Rigidbody.position + Vector3.up * m_Capsule.radius * k_Half, Vector3.up);
             float crouchRayLength = m_CapsuleHeight - m_Capsule.radius * k_Half;
             if (Physics.SphereCast(crouchRay, m_Capsule.radius * k_Half, crouchRayLength, ~0, QueryTriggerInteraction.Ignore))
             {
-                m_Crouching = true;
+                m_IsCrouching = true;
             }
         }
     }
@@ -141,7 +261,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         // update the animator parameters
         m_Animator.SetFloat("Forward", m_ForwardAmount, 0.1f, Time.deltaTime);
         m_Animator.SetFloat("Turn", m_TurnAmount, 0.1f, Time.deltaTime);
-        m_Animator.SetBool("Crouch", m_Crouching);
+        m_Animator.SetBool("Crouch", m_IsCrouching);
         m_Animator.SetBool("OnGround", m_IsGrounded);
         if (!m_IsGrounded)
         {
@@ -173,13 +293,14 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
     }
 
-    void HandleAirborneMovement()
+    void HandleAirborneMovement(Vector3 move)
     {
         // apply extra gravity from multiplier:
 
-        //Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
-        //m_Rigidbody.AddForce(extraGravityForce);
+        Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
+        m_Rigidbody.AddForce(extraGravityForce);
 
+        transform.Translate(move * Time.deltaTime);
         m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
     }
 
@@ -188,24 +309,43 @@ public class ThirdPersonCharacter : MonoBehaviour
         // check whether conditions are right to allow a jump:
         if (jump && !crouch && m_Animator.GetCurrentAnimatorStateInfo(0).IsName("Grounded"))
         {
-            // jump!
-            m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
-            m_IsGrounded = false;
-            m_Animator.applyRootMotion = false;
-            m_GroundCheckDistance = 0.1f;
+            Jump();
         }
     }
 
-    void HandleClimbing(Vector3 move)
+    IEnumerator HandleRoll(Vector3 move)
     {
-        transform.rotation = Quaternion.FromToRotation(Vector3.forward, -m_WallNormal);
-        transform.Translate(move * Time.deltaTime);
+        //m_IsGrounded = false;
+        //m_Animator.applyRootMotion = false;
+
+        m_IsRolling = true;
+
+        yield return new WaitForSeconds(0.2f);
+
+        //m_Crouching = false;
+        //m_IsGrounded = true;
+        m_IsRolling = false;
+        //m_Animator.applyRootMotion = true;
+    }
+
+    void Jump()
+    {
+        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x * 0.5f, m_JumpPower, m_Rigidbody.velocity.z * 0.5f);
+        m_IsGrounded = false;
+        m_Animator.applyRootMotion = false;
+        m_GroundCheckDistance = 0.1f;
     }
 
     void ApplyExtraTurnRotation()
     {
         // help the character turn faster (this is in addition to root rotation in the animation)
         float turnSpeed = Mathf.Lerp(m_StationaryTurnSpeed, m_MovingTurnSpeed, m_ForwardAmount);
+
+        if (m_IsRolling)
+        {
+            turnSpeed *= 10f;
+        }
+
         transform.Rotate(0, m_TurnAmount * turnSpeed * Time.deltaTime, 0);
     }
 
@@ -227,13 +367,14 @@ public class ThirdPersonCharacter : MonoBehaviour
     {
         RaycastHit hitInfo;
 #if UNITY_EDITOR
-        Debug.DrawLine(transform.position + Vector3.up * 0.5f, transform.position + Vector3.up * 0.5f + (transform.forward * 0.5f), Color.red);
+        Debug.DrawLine(transform.position + transform.up * 0.5f, transform.position + transform.up * 0.5f + (transform.forward * 0.5f), Color.red);
 #endif
         // 0.1f is a small offset to start the ray from inside the character
         // it is also good to note that the transform position in the sample assets is at the base of the character
-        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
+        if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
         {
             m_WallNormal = hitInfo.normal;
+            m_WallPosition = hitInfo.point;
         }
     }
 

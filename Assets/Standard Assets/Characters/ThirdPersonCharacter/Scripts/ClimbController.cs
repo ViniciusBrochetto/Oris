@@ -40,6 +40,11 @@ public class ClimbController : MonoBehaviour
 
     public ClimbInfo Climb()
     {
+        return Climb(Vector3.zero);
+    }
+
+    public ClimbInfo Climb(Vector3 move)
+    {
         ClimbInfo ci = new ClimbInfo();
         ci.feetConnected = true;
         ci.handsConnected = true;
@@ -48,7 +53,7 @@ public class ClimbController : MonoBehaviour
         RaycastHit hit;
         for (int i = 0; i < limitPositions.Length; i++)
         {
-            ray = new Ray(limitPositions[i].position, limitPositions[i].forward);
+            ray = new Ray(limitPositions[i].position + move, limitPositions[i].forward + move);
 
             if (!Physics.SphereCast(ray, testRadius, out hit, maxDistance, grabMask.value))
             {
@@ -69,8 +74,8 @@ public class ClimbController : MonoBehaviour
             if (debug)
             {
                 GameObject g = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                g.transform.localScale = Vector3.one * testRadius;
-                g.transform.position = ray.origin + (ray.direction * maxDistance) + ray.direction.normalized * (testRadius / 2f);
+                g.transform.localScale = Vector3.one * testRadius * 2f;
+                g.transform.position = ray.origin + (ray.direction.normalized * hit.distance);
                 g.GetComponent<Collider>().enabled = false;
                 Destroy(g, Time.fixedDeltaTime);
             }
@@ -79,6 +84,7 @@ public class ClimbController : MonoBehaviour
         return ci;
     }
 }
+
 public struct ClimbInfo
 {
     public bool handsConnected;
