@@ -32,12 +32,15 @@ public class pb_Preferences
 	static bool pbPBOSelectionOnly;
 	static bool pbCloseShapeWindow = false;
 	static bool pbUVEditorFloating = true;
-	static bool pbShowSceneToolbar = true;
+	// static bool pbShowSceneToolbar = true;
 	static bool pbStripProBuilderOnBuild = true;
 	static bool pbDisableAutoUV2Generation = false;
 	static bool pbShowSceneInfo = false;
 	static bool pbEnableBackfaceSelection = false;
 	static bool pbUniqueModeShortcuts = false;
+	static bool pbIconGUI = false;
+	static bool pbShiftOnlyTooltips = false;
+	static bool pbDrawAxisLines = true;
 	
 	static ColliderType defaultColliderType = ColliderType.BoxCollider;
 	static SceneToolbarLocation pbToolbarLocation = SceneToolbarLocation.UpperCenter;
@@ -70,16 +73,32 @@ public class pb_Preferences
 		pbStripProBuilderOnBuild = EditorGUILayout.Toggle(new GUIContent("Strip PB Scripts on Build", "If true, when building an executable all ProBuilder scripts will be stripped from your built product."), pbStripProBuilderOnBuild);
 		pbDisableAutoUV2Generation = EditorGUILayout.Toggle(new GUIContent("Disable Auto UV2 Generation", "Disables automatic generation of UV2 channel.  If Unity is sluggish when working with large ProBuilder objects, disabling UV2 generation will improve performance.  Use `Actions/Generate UV2` or `Actions/Generate Scene UV2` to build lightmap UVs prior to baking."), pbDisableAutoUV2Generation);
 		pbShowSceneInfo = EditorGUILayout.Toggle(new GUIContent("Show Scene Info", "Displays the selected object vertex and triangle counts in the scene view."), pbShowSceneInfo);
+		pbShowEditorNotifications = EditorGUILayout.Toggle("Show Editor Notifications", pbShowEditorNotifications);
 		pbEnableBackfaceSelection = EditorGUILayout.Toggle(new GUIContent("Enable Back-face Selection", "If enabled, you may select faces that have been culled by their back face."), pbEnableBackfaceSelection);
 
-		pbDefaultMaterial = (Material) EditorGUILayout.ObjectField("Default Material", pbDefaultMaterial, typeof(Material), false);
-		defaultOpenInDockableWindow = EditorGUILayout.Toggle("Open in Dockable Window", defaultOpenInDockableWindow);
+		/**
+		 * TOOLBAR SETTINGS
+		 */
+		GUILayout.Label("Toolbar Settings", EditorStyles.boldLabel);
 
+		pbIconGUI = EditorGUILayout.Toggle(new GUIContent("Use Icon GUI", "Toggles the ProBuilder window interface between text and icon versions."), pbIconGUI);
+		pbShiftOnlyTooltips = EditorGUILayout.Toggle(new GUIContent("Shift Key Tooltips", "Tooltips will only show when the Shift key is held"), pbShiftOnlyTooltips);
+		pbToolbarLocation = (SceneToolbarLocation) EditorGUILayout.EnumPopup("Toolbar Location", pbToolbarLocation);
+
+		pbUniqueModeShortcuts = EditorGUILayout.Toggle(new GUIContent("Unique Mode Shortcuts", "When off, the G key toggles between Object and Element modes and H enumerates the element modes.  If on, G, H, J, and K are shortcuts to Object, Vertex, Edge, and Face modes respectively."), pbUniqueModeShortcuts);
+		defaultOpenInDockableWindow = EditorGUILayout.Toggle("Open in Dockable Window", defaultOpenInDockableWindow);
+	
+
+		/**
+		 * DEFAULT SETTINGS
+		 */
+		GUILayout.Label("Defaults", EditorStyles.boldLabel);
+
+		pbDefaultMaterial = (Material) EditorGUILayout.ObjectField("Default Material", pbDefaultMaterial, typeof(Material), false);
 		GUILayout.BeginHorizontal();
 			EditorGUILayout.PrefixLabel("Default Entity");
 			pbDefaultEntity = ((EntityType)EditorGUILayout.EnumPopup( (EntityType)pbDefaultEntity ));
 		GUILayout.EndHorizontal();
-
 		GUILayout.BeginHorizontal();
 			EditorGUILayout.PrefixLabel("Default Collider");
 			defaultColliderType = ((ColliderType)EditorGUILayout.EnumPopup( (ColliderType)defaultColliderType ));
@@ -88,17 +107,15 @@ public class pb_Preferences
 		if((ColliderType)defaultColliderType == ColliderType.MeshCollider)
 			pbForceConvex = EditorGUILayout.Toggle("Force Convex Mesh Collider", pbForceConvex);
 
-		pbShowEditorNotifications = EditorGUILayout.Toggle("Show Editor Notifications", pbShowEditorNotifications);
+		/**
+		 * MISC. SETTINGS
+		 */
+		GUILayout.Label("Misc. Settings", EditorStyles.boldLabel);
+
 		pbDragCheckLimit = EditorGUILayout.Toggle(new GUIContent("Limit Drag Check to Selection", "If true, when drag selecting faces, only currently selected pb-Objects will be tested for matching faces.  If false, all pb_Objects in the scene will be checked.  The latter may be slower in large scenes."), pbDragCheckLimit);
 		pbPBOSelectionOnly = EditorGUILayout.Toggle(new GUIContent("Only PBO are Selectable", "If true, you will not be able to select non probuilder objects in Geometry and Texture mode"), pbPBOSelectionOnly);
 		pbCloseShapeWindow = EditorGUILayout.Toggle(new GUIContent("Close shape window after building", "If true the shape window will close after hitting the build button"), pbCloseShapeWindow);
-		pbShowSceneToolbar = EditorGUILayout.Toggle(new GUIContent("Show Scene Toolbar", "Hide or show the SceneView mode toolbar."), pbShowSceneToolbar);
-
-		GUI.enabled = pbShowSceneToolbar;
-		pbToolbarLocation = (SceneToolbarLocation) EditorGUILayout.EnumPopup("Toolbar Location", pbToolbarLocation);
-		GUI.enabled = true;
-
-		pbUniqueModeShortcuts = EditorGUILayout.Toggle(new GUIContent("Unique Mode Shortcuts", "When off, the G key toggles between Object and Element modes and H enumerates the element modes.  If on, G, H, J, and K are shortcuts to Object, Vertex, Edge, and Face modes respectively."), pbUniqueModeShortcuts);
+		pbDrawAxisLines = EditorGUILayout.Toggle(new GUIContent("Dimension Overlay Lines", "When the Dimensions Overlay is on, this toggle shows or hides the axis lines."), pbDrawAxisLines);
 
 		GUILayout.Space(4);
 		
@@ -181,6 +198,9 @@ public class pb_Preferences
 			EditorPrefs.DeleteKey(pb_Constant.pbToolbarLocation);
 			EditorPrefs.DeleteKey(pb_Constant.pbDefaultEntity);
 			EditorPrefs.DeleteKey(pb_Constant.pbUniqueModeShortcuts);
+			EditorPrefs.DeleteKey(pb_Constant.pbIconGUI);
+			EditorPrefs.DeleteKey(pb_Constant.pbShiftOnlyTooltips);
+			EditorPrefs.DeleteKey(pb_Constant.pbDrawAxisLines);
 		}
 
 		LoadPrefs();
@@ -192,11 +212,9 @@ public class pb_Preferences
 	static Rect resetRect = new Rect(0,0,0,0);
 	static Vector2 shortcutScroll = Vector2.zero;
 	static int CELL_HEIGHT = 20;
-	// static int tmp = 0;
+
 	static void ShortcutSelectPanel()
 	{
-		// tmp = EditorGUI.IntField(new Rect(400, 340, 80, 24), "", tmp);
-
 		GUILayout.Space(4);
 		GUI.contentColor = Color.white;
 		GUI.Box(selectBox, "");
@@ -213,7 +231,8 @@ public class pb_Preferences
 
 		for(int n = 1; n < defaultShortcuts.Length; n++)
 		{
-			if(n == shortcutIndex) {
+			if(n == shortcutIndex) 
+			{
 				GUI.backgroundColor = new Color(0.23f, .49f, .89f, 1f);
 					labelStyle.normal.background = EditorGUIUtility.whiteTexture;
 					Color oc = labelStyle.normal.textColor;
@@ -227,7 +246,9 @@ public class pb_Preferences
 			{
 
 				if(GUILayout.Button(defaultShortcuts[n].action, labelStyle, GUILayout.MinHeight(CELL_HEIGHT), GUILayout.MaxHeight(CELL_HEIGHT)))
+				{
 					shortcutIndex = n;
+				}
 			}
 		}
 
@@ -235,8 +256,8 @@ public class pb_Preferences
 
 	}
 
-	static Rect keyRect = new Rect(324, 240, 168, 18);
-	static Rect keyInputRect = new Rect(356, 240, 133, 18);
+	static Rect keyRect 		= new Rect(324, 248, 168, 18);
+	static Rect keyInputRect 	= new Rect(356, 248, 133, 18);
 
 	static Rect descriptionTitleRect = new Rect(324, 300, 168, 200);
 	static Rect descriptionRect = new Rect(324, 320, 168, 200);
@@ -247,16 +268,18 @@ public class pb_Preferences
 	static void ShortcutEditPanel()
 	{
 		// descriptionTitleRect = EditorGUI.RectField(new Rect(240,150,200,50), descriptionTitleRect);
-
-		string keyString = defaultShortcuts[shortcutIndex].key.ToString();
-	
 		GUI.Label(keyRect, "Key");
-		keyString = EditorGUI.TextField(keyInputRect, keyString);
-		defaultShortcuts[shortcutIndex].key = pbUtil.ParseEnum(keyString, KeyCode.None);
+		KeyCode key = defaultShortcuts[shortcutIndex].key;
+		key = (KeyCode) EditorGUI.EnumPopup(keyInputRect, key);
+		defaultShortcuts[shortcutIndex].key = key;
 
 		GUI.Label(modifiersRect, "Modifiers");
-		defaultShortcuts[shortcutIndex].eventModifiers = 
-			(EventModifiers)EditorGUI.EnumMaskField(modifiersInputRect, defaultShortcuts[shortcutIndex].eventModifiers);
+
+		// EnumMaskField returns a bit-mask where the flags correspond to the indices of the enum, not the enum values,
+		// so this isn't technically correct.
+		EventModifiers em = (EventModifiers) (((int)defaultShortcuts[shortcutIndex].eventModifiers) * 2);
+		em = (EventModifiers)EditorGUI.EnumMaskField(modifiersInputRect, em);
+		defaultShortcuts[shortcutIndex].eventModifiers = (EventModifiers) (((int)em) / 2);
 
 		GUI.Label(descriptionTitleRect, "Description", EditorStyles.boldLabel);
 
@@ -279,9 +302,12 @@ public class pb_Preferences
 		pbPBOSelectionOnly 					= pb_Preferences_Internal.GetBool(pb_Constant.pbPBOSelectionOnly);
 		pbCloseShapeWindow 					= pb_Preferences_Internal.GetBool(pb_Constant.pbCloseShapeWindow);		
 		pbUVEditorFloating 					= pb_Preferences_Internal.GetBool(pb_Constant.pbUVEditorFloating);
-		pbShowSceneToolbar 					= pb_Preferences_Internal.GetBool(pb_Constant.pbShowSceneToolbar);
+		// pbShowSceneToolbar 					= pb_Preferences_Internal.GetBool(pb_Constant.pbShowSceneToolbar);
 		pbShowEditorNotifications 			= pb_Preferences_Internal.GetBool(pb_Constant.pbShowEditorNotifications);
 		pbUniqueModeShortcuts 				= pb_Preferences_Internal.GetBool(pb_Constant.pbUniqueModeShortcuts);
+		pbIconGUI 							= pb_Preferences_Internal.GetBool(pb_Constant.pbIconGUI);
+		pbShiftOnlyTooltips 				= pb_Preferences_Internal.GetBool(pb_Constant.pbShiftOnlyTooltips);
+		pbDrawAxisLines 					= pb_Preferences_Internal.GetBool(pb_Constant.pbDrawAxisLines);
 
 		pbDefaultFaceColor 					= pb_Preferences_Internal.GetColor( pb_Constant.pbDefaultFaceColor );
 		pbDefaultEdgeColor 					= pb_Preferences_Internal.GetColor( pb_Constant.pbDefaultEdgeColor );
@@ -332,8 +358,11 @@ public class pb_Preferences
 		EditorPrefs.SetBool		(pb_Constant.pbPBOSelectionOnly, pbPBOSelectionOnly);
 		EditorPrefs.SetBool		(pb_Constant.pbCloseShapeWindow, pbCloseShapeWindow);
 		EditorPrefs.SetBool		(pb_Constant.pbUVEditorFloating, pbUVEditorFloating);
-		EditorPrefs.SetBool		(pb_Constant.pbShowSceneToolbar, pbShowSceneToolbar);
+		// EditorPrefs.SetBool		(pb_Constant.pbShowSceneToolbar, pbShowSceneToolbar);
 		EditorPrefs.SetBool		(pb_Constant.pbUniqueModeShortcuts, pbUniqueModeShortcuts);
+		EditorPrefs.SetBool		(pb_Constant.pbIconGUI, pbIconGUI);
+		EditorPrefs.SetBool		(pb_Constant.pbShiftOnlyTooltips, pbShiftOnlyTooltips);
+		EditorPrefs.SetBool		(pb_Constant.pbDrawAxisLines, pbDrawAxisLines);
 		
 		EditorPrefs.SetFloat	(pb_Constant.pbVertexHandleSize, pbVertexHandleSize);
 		EditorPrefs.SetFloat 	(pb_Constant.pbUVGridSnapValue, pbUVGridSnapValue);

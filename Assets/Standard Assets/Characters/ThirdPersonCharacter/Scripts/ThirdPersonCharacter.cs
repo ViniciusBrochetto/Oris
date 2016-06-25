@@ -181,10 +181,6 @@ public class ThirdPersonCharacter : MonoBehaviour
             {
                 transform.Translate(move * Time.deltaTime);
             }
-            else
-            {
-                Debug.Log("Ã");
-            }
         }
     }
 

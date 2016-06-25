@@ -1,7 +1,6 @@
 #define PROTOTYPE
 using UnityEngine;
 using System.Collections;
-using ProBuilder2.Math;
 using ProBuilder2.Common;
 
 namespace ProBuilder2.Examples
