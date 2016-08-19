@@ -14,13 +14,15 @@ public class CameraShake : MonoBehaviour
 
     private Coroutine shakeCR;
 
-    private Vector3 originalCamPos = Camera.main.transform.localPosition;
-    private Quaternion originalCamRot = Camera.main.transform.localRotation;
+    private Vector3 originalCamPos;
+    private Quaternion originalCamRot;
+    private Camera mainCam;
 
-    void Start()
+    void Awake()
     {
-        originalCamPos = Camera.main.transform.localPosition;
-        originalCamRot = Camera.main.transform.localRotation;
+        mainCam = Camera.main;
+        originalCamPos = mainCam.transform.localPosition;
+        originalCamRot = mainCam.transform.localRotation;
     }
 
     public void RequestShake()
@@ -40,18 +42,18 @@ public class CameraShake : MonoBehaviour
         {
             StopCoroutine(shakeCR);
 
-            Camera.main.transform.localPosition = originalCamPos;
-            Camera.main.transform.localRotation = originalCamRot;
+            mainCam.transform.localPosition = originalCamPos;
+            mainCam.transform.localRotation = originalCamRot;
         }
 
-        originalCamPos = Camera.main.transform.localPosition;
-        originalCamRot = Camera.main.transform.localRotation;
+        originalCamPos = mainCam.transform.localPosition;
+        originalCamRot = mainCam.transform.localRotation;
         shakeCR = StartCoroutine(ProcessShake(duration, intensity, decay));
     }
 
     IEnumerator ProcessShake(float duration, float intensity, bool decay)
     {
-        Vector3 slowPos = Camera.main.transform.localPosition;
+        Vector3 slowPos = mainCam.transform.localPosition;
 
 
         float decayPerSec = intensity / duration;
@@ -63,7 +65,7 @@ public class CameraShake : MonoBehaviour
             {
                 if (!doSlowPositionShake)
                 {
-                    Camera.main.transform.localPosition = originalCamPos + Random.insideUnitSphere * intensity;
+                    mainCam.transform.localPosition = originalCamPos + Random.insideUnitSphere * intensity;
                 }
                 else
                 {
@@ -72,7 +74,7 @@ public class CameraShake : MonoBehaviour
                         slowPos = originalCamPos + Random.insideUnitSphere * 2f;
                     }
 
-                    Camera.main.transform.localPosition = Vector3.Lerp(Camera.main.transform.localPosition, slowPos, Time.deltaTime * slowPositionShakeTime);
+                    mainCam.transform.localPosition = Vector3.Lerp(mainCam.transform.localPosition, slowPos, Time.deltaTime * slowPositionShakeTime);
                 }
             }
 
@@ -83,7 +85,7 @@ public class CameraShake : MonoBehaviour
                                               originalCamRot.z + Random.Range(-intensity, intensity) * .2f,
                                               originalCamRot.w + Random.Range(-intensity, intensity) * .2f);
 
-                Camera.main.transform.localRotation = q;
+                mainCam.transform.localRotation = q;
             }
 
             if (decay)
