@@ -30,8 +30,12 @@ public class RagdollController : MonoBehaviour
     [SerializeField]
     private Transform m_RLowerArm;
 
+    public bool isRagdollActive = false;
+
     public void SetRagdollActive(bool active)
     {
+        isRagdollActive = active;
+
         if (m_Animator)
         {
             m_Animator.enabled = !active;

@@ -32,12 +32,6 @@ public class ClimbController : MonoBehaviour
         limitPositions[3] = limitTop[1];
     }
 
-    void FixedUpdate()
-    {
-        //if (debug)
-        //    Climb();
-    }
-
     public ClimbInfo Climb()
     {
         return Climb(Vector3.zero);
@@ -71,6 +65,8 @@ public class ClimbController : MonoBehaviour
                     Debug.DrawRay(ray.origin, ray.direction * maxDistance, Color.green);
             }
 
+
+
             if (debug)
             {
                 GameObject g = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -80,7 +76,6 @@ public class ClimbController : MonoBehaviour
                 Destroy(g, Time.fixedDeltaTime);
             }
         }
-
         return ci;
     }
 }

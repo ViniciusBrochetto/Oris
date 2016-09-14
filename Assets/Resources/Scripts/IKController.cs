@@ -55,6 +55,20 @@ public class IKController : MonoBehaviour
         }
     }
 
+    public void SetHandsIK(bool active)
+    {
+        leftHandIK = active;
+        rightHandIK = active;
+    }
+
+    public void SetHandsIK(bool active, Transform lHand, Transform rHand)
+    {
+        leftHandIK = active;
+        rightHandIK = active;
+        leftHandPos = lHand;
+        rightHandPos = rHand;
+    }
+
     //a callback for calculating IK
     void OnAnimatorIK()
     {
