@@ -49,7 +49,6 @@ public class ThirdPersonCharacter : MonoBehaviour
     Vector3 m_GroundNormal;
     [SerializeField]
     Vector3 m_WallNormal;
-
     [SerializeField]
     Transform m_WallPosition;
 
@@ -89,83 +88,76 @@ public class ThirdPersonCharacter : MonoBehaviour
             return;
         }
 
-        //if (!m_IsRolling)
-        //{
-        // convert the world relative moveInput vector into a local-relative
-        // turn amount and forward amount required to head in the desired
-        // direction.
         if (move.magnitude > 1f)
             move.Normalize();
 
         move = transform.InverseTransformDirection(move);
 
-        if (!temp_HangWait && m_CanClimb && climb)
+        if (!temp_HangWait && climb)
         {
-            m_IsClimbing = true;
-            CheckWallStatus();
-
-            ClimbInfo m_ClimbInfo;
-            m_ClimbInfo = m_ClimbController.Climb(move * Time.deltaTime);
-            m_CanClimbNextFrame = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
-
-            m_ClimbInfo = m_ClimbController.Climb();
-            m_CanClimb = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
-
-            HandleClimbing(move, jump, jumpRelease, m_CanClimbNextFrame);
-        }
-        else
-        {
-            m_IsPreparingJump = false;
-            m_IsClimbing = false;
-            m_ClimbStarted = false;
-            m_Rigidbody.useGravity = true;
-
-            CheckGroundStatus();
-
-            move = Vector3.ProjectOnPlane(move, m_GroundNormal);
-            m_TurnAmount = Mathf.Atan2(move.x, move.z);
-            m_ForwardAmount = move.z;
-
-            transform.eulerAngles = Vector3.Scale(transform.rotation.eulerAngles, Vector3.up);
-
-            ApplyExtraTurnRotation();
-
-            if (climb)
+            if (CheckWallStatus())
             {
                 ClimbInfo m_ClimbInfo;
+                m_ClimbInfo = m_ClimbController.Climb(move * Time.deltaTime);
+                m_CanClimbNextFrame = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
+
                 m_ClimbInfo = m_ClimbController.Climb();
                 m_CanClimb = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
+
+                if (m_CanClimb)
+                {
+                    m_IsClimbing = true;
+                    HandleClimbing(move, jump, jumpRelease, m_CanClimbNextFrame);
+                }
+
+                return;
             }
+        }
 
-            // control and velocity handling is different when grounded and airborne:
-            if (m_IsGrounded)
+
+        m_IsPreparingJump = false;
+        m_IsClimbing = false;
+        m_ClimbStarted = false;
+        m_Rigidbody.useGravity = true;
+
+        CheckGroundStatus();
+
+        move = Vector3.ProjectOnPlane(move, m_GroundNormal);
+        m_TurnAmount = Mathf.Atan2(move.x, move.z);
+        m_ForwardAmount = move.z;
+
+        transform.eulerAngles = Vector3.Scale(transform.rotation.eulerAngles, Vector3.up);
+
+        ApplyExtraTurnRotation();
+
+        // control and velocity handling is different when grounded and airborne:
+        if (m_IsGrounded)
+        {
+            if (roll)
             {
-                if (roll)
-                {
-                    StartCoroutine(HandleRoll(move));
-                }
-                else
-                {
-                    HandleGroundedMovement(crouch, jump);
-
-                    if (m_IsRolling)
-                    {
-                        transform.Translate(move * m_RollPower * Time.deltaTime);
-                    }
-                }
+                StartCoroutine(HandleRoll(move));
             }
             else
             {
-                HandleAirborneMovement(move);
+                HandleGroundedMovement(crouch, jump);
+
+                if (m_IsRolling)
+                {
+                    transform.Translate(move * m_RollPower * Time.deltaTime);
+                }
             }
-
-            ScaleCapsuleForCrouch(crouch || m_IsRolling);
-            PreventStandingInLowHeadroom();
-
-            // send input and other state parameters to the animator
-            UpdateAnimator(move);
         }
-        //}
+        else
+        {
+            HandleAirborneMovement(move);
+        }
+
+        ScaleCapsuleForCrouch(crouch || m_IsRolling);
+        PreventStandingInLowHeadroom();
+
+        // send input and other state parameters to the animator
+        UpdateAnimator(move);
+
     }
 
     void HandleClimbing(Vector3 move, bool jump, bool jumpRelease, bool canClimbNextFrame)
@@ -382,7 +374,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
     }
 
-    void CheckWallStatus()
+    bool CheckWallStatus()
     {
         if (!m_ClimbStarted)
         {
@@ -390,23 +382,30 @@ public class ThirdPersonCharacter : MonoBehaviour
             m_WallPosition.localPosition = Vector3.zero;
         }
 
+        Vector3 v = Vector3.up * 0.6f;
 
         RaycastHit hitInfo;
-#if UNITY_EDITOR
-        Debug.DrawLine(transform.position, transform.position + (transform.forward * 0.5f), Color.red);
-#endif
+
+        Debug.DrawLine(transform.position + v, transform.position + (transform.forward * 0.5f) + v, Color.red);
+
         // 0.1f is a small offset to start the ray from inside the character
         // it is also good to note that the transform position in the sample assets is at the base of the character
-        if (Physics.Raycast(transform.position, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
+        if (Physics.Raycast(transform.position + v, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
         {
             m_WallNormal = hitInfo.normal;
 
             if (!m_ClimbStarted)
             {
                 m_WallPosition.parent = hitInfo.transform;
-                m_WallPosition.position = hitInfo.point;
+                m_WallPosition.position = hitInfo.point - v;
                 m_ClimbStarted = true;
             }
+
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
