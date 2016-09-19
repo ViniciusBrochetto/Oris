@@ -49,10 +49,7 @@ public class ThirdPersonUserControl : MonoBehaviour
         }
 
         m_Climb = Input.GetKey(KeyCode.F);
-    }
 
-    private void FixedUpdate()
-    {
         // read inputs
         float h = CrossPlatformInputManager.GetAxis("Horizontal");
         float v = CrossPlatformInputManager.GetAxis("Vertical");
@@ -61,15 +58,12 @@ public class ThirdPersonUserControl : MonoBehaviour
         if (m_Character.m_IsClimbing)
         {
             m_CamForward = Vector3.Scale(m_Cam.up, new Vector3(0, 1, 0)).normalized;
-            //m_Rigidbody.useGravity = false;
-            //m_Rigidbody.velocity = Vector3.zero;
             m_Move = v * m_CamForward + h * m_Character.transform.right;
         }
         else
         {
             // calculate camera relative direction to move:
             m_CamForward = Vector3.Scale(m_Cam.forward, new Vector3(1, 0, 1)).normalized;
-            //m_Rigidbody.useGravity = true;
             m_Move = v * m_CamForward + h * m_Cam.right;
         }
 

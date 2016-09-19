@@ -9,6 +9,7 @@ public class IKController : MonoBehaviour
     public bool ikActive = false;
 
     bool rightHandIK, leftHandIK = false;
+    public bool useHandsIK, useFeetIK;
 
     public Transform rightShoulder, leftShoulder;
 
@@ -17,6 +18,9 @@ public class IKController : MonoBehaviour
 
     public Transform lookObj = null;
 
+
+    public float dist;
+
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -24,35 +28,51 @@ public class IKController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!rightShoulder || !leftShoulder)
-            return;
-
         RaycastHit hit;
-        Physics.SphereCast(rightShoulder.position, 0.3f, transform.right, out hit, 0.25f);
+        if (useHandsIK)
+        {
+            if (!rightShoulder || !leftShoulder)
+                return;
 
-        if (hit.collider)
-        {
-            rightHandIK = true;
-            rightHandPos.up = (hit.normal).normalized;
-            rightHandPos.position = hit.point - Vector3.up * 0.1f + rightHandPos.up * 0.05f + transform.forward * 0.2f;
-        }
-        else
-        {
-            rightHandIK = false;
+            Physics.SphereCast(rightShoulder.position, 0.3f, transform.right, out hit, 0.25f);
+
+            if (hit.collider)
+            {
+                rightHandIK = true;
+                rightHandPos.up = (hit.normal).normalized;
+                rightHandPos.position = hit.point - Vector3.up * 0.1f + rightHandPos.up * 0.05f + transform.forward * 0.2f;
+            }
+            else
+            {
+                rightHandIK = false;
+            }
+
+            Physics.SphereCast(leftShoulder.position, 0.3f, -transform.right, out hit, 0.25f);
+
+            if (hit.collider)
+            {
+                leftHandIK = true;
+                leftHandPos.up = (hit.normal).normalized;
+                leftHandPos.position = hit.point - Vector3.up * 0.1f + leftHandPos.up * 0.05f + transform.forward * 0.2f;
+            }
+            else
+            {
+                leftHandIK = false;
+            }
         }
 
-        Physics.SphereCast(leftShoulder.position, 0.3f, -transform.right, out hit, 0.25f);
+        if (useFeetIK)
+        {
+            Vector3 v = transform.position + Vector3.up * 0.5f;
 
-        if (hit.collider)
-        {
-            leftHandIK = true;
-            leftHandPos.up = (hit.normal).normalized;
-            leftHandPos.position = hit.point - Vector3.up * 0.1f + leftHandPos.up * 0.05f + transform.forward * 0.2f;
+            if (Physics.Raycast(v, Vector3.down, out hit, 3f))
+            {
+                rightFootPos.position = hit.point;
+                dist = hit.distance;
+                rightFootPos.rotation = Quaternion.FromToRotation(transform.up, hit.normal);
+            }
         }
-        else
-        {
-            leftHandIK = false;
-        }
+
     }
 
     public void SetHandsIK(bool active)
@@ -110,19 +130,27 @@ public class IKController : MonoBehaviour
                         animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0f);
                         animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0f);
                     }
-
-                    //animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
-                    //animator.SetIKRotation(AvatarIKGoal.RightHand, rightHandPos.rotation);
                 }
+                if (rightFootPos != null)
+                {
+                    animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, 1f);
+                    animator.SetIKPosition(AvatarIKGoal.RightFoot, rightFootPos.position);
 
-            }
-            else
-            {
-                animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
-                animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
+                    dist = Mathf.Max(0f, dist);
 
-                //animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
-                //animator.SetLookAtWeight(0);
+                    if (dist - 0.5f <= 0.5f)
+                    {
+                        animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, 1f - (dist / 0.5f));
+                        animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, 1f - (dist / 0.5f));
+                    }
+                    else
+                    {
+                        animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, 0f);
+                        animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, 0f);
+                    }
+
+                    animator.SetIKRotation(AvatarIKGoal.RightFoot, rightFootPos.rotation);
+                }
             }
         }
     }

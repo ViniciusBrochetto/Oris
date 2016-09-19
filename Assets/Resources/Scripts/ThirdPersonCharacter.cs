@@ -88,6 +88,8 @@ public class ThirdPersonCharacter : MonoBehaviour
             return;
         }
 
+        Vector3 o_Move = move;
+
         if (move.magnitude > 1f)
             move.Normalize();
 
@@ -107,7 +109,7 @@ public class ThirdPersonCharacter : MonoBehaviour
                 if (m_CanClimb)
                 {
                     m_IsClimbing = true;
-                    HandleClimbing(move, jump, jumpRelease, m_CanClimbNextFrame);
+                    HandleClimbing(o_Move, jump, jumpRelease, m_CanClimbNextFrame);
                 }
 
                 return;
@@ -158,45 +160,6 @@ public class ThirdPersonCharacter : MonoBehaviour
         // send input and other state parameters to the animator
         UpdateAnimator(move);
 
-    }
-
-    void HandleClimbing(Vector3 move, bool jump, bool jumpRelease, bool canClimbNextFrame)
-    {
-        transform.position = m_WallPosition.position;
-
-        if (m_IsPreparingJump)
-        {
-            if (jumpRelease)
-            {
-                m_IsPreparingJump = false;
-                WallJump();
-                StartCoroutine(WallJumpTimer());
-                return;
-            }
-        }
-        else
-        {
-            if (jump)
-            {
-                m_IsPreparingJump = true;
-                return;
-            }
-
-            m_Rigidbody.useGravity = false;
-            m_Rigidbody.velocity = Vector3.zero;
-
-            if (m_CanClimb)
-            {
-                transform.rotation = Quaternion.FromToRotation(Vector3.forward, -m_WallNormal);
-                transform.rotation.eulerAngles.Set(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0f);
-            }
-
-            if (canClimbNextFrame)
-            {
-                transform.Translate(move * Time.deltaTime);
-                m_WallPosition.position = transform.position;
-            }
-        }
     }
 
     bool temp_HangWait = false;
@@ -304,6 +267,44 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
     }
 
+    void HandleClimbing(Vector3 move, bool jump, bool jumpRelease, bool canClimbNextFrame)
+    {
+        transform.position = m_WallPosition.position - transform.forward * m_Capsule.radius;
+
+        if (m_IsPreparingJump)
+        {
+            if (jumpRelease)
+            {
+                m_IsPreparingJump = false;
+                WallJump();
+                StartCoroutine(WallJumpTimer());
+                return;
+            }
+        }
+        else
+        {
+            if (jump)
+            {
+                m_IsPreparingJump = true;
+                return;
+            }
+
+            m_Rigidbody.useGravity = false;
+            m_Rigidbody.velocity = Vector3.zero;
+
+            if (m_CanClimb)
+            {
+                transform.rotation = Quaternion.FromToRotation(Vector3.forward, -m_WallNormal);
+            }
+
+            if (canClimbNextFrame)
+            {
+                transform.Translate(transform.InverseTransformDirection(move) * Time.deltaTime);
+                m_WallPosition.Translate(m_WallPosition.InverseTransformDirection(move) * Time.deltaTime, Space.Self);
+            }
+        }
+    }
+
     void HandleAirborneMovement(Vector3 move)
     {
         // apply extra gravity from multiplier:
@@ -382,22 +383,22 @@ public class ThirdPersonCharacter : MonoBehaviour
             m_WallPosition.localPosition = Vector3.zero;
         }
 
-        Vector3 v = Vector3.up * 0.6f;
+        Vector3 extraY = transform.up * 0.6f;
 
         RaycastHit hitInfo;
 
-        Debug.DrawLine(transform.position + v, transform.position + (transform.forward * 0.5f) + v, Color.red);
+        Debug.DrawLine(transform.position + extraY, transform.position + (transform.forward * 0.5f) + extraY, Color.magenta);
 
         // 0.1f is a small offset to start the ray from inside the character
         // it is also good to note that the transform position in the sample assets is at the base of the character
-        if (Physics.Raycast(transform.position + v, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
+        if (Physics.Raycast(transform.position + extraY, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
         {
             m_WallNormal = hitInfo.normal;
 
             if (!m_ClimbStarted)
             {
                 m_WallPosition.parent = hitInfo.transform;
-                m_WallPosition.position = hitInfo.point - v;
+                m_WallPosition.position = hitInfo.point - extraY;
                 m_ClimbStarted = true;
             }
 

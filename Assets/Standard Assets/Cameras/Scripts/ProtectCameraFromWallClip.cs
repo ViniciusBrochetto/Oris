@@ -37,7 +37,7 @@ namespace UnityStandardAssets.Cameras
         }
 
 
-        private void LateUpdate()
+        private void Update()
         {
             // initially set the target distance
             float targetDist = m_OriginalDist;
