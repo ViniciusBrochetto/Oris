@@ -269,7 +269,7 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     void HandleClimbing(Vector3 move, bool jump, bool jumpRelease, bool canClimbNextFrame)
     {
-        transform.position = m_WallPosition.position - transform.forward * m_Capsule.radius;
+
 
         if (m_IsPreparingJump)
         {
@@ -292,17 +292,21 @@ public class ThirdPersonCharacter : MonoBehaviour
             m_Rigidbody.useGravity = false;
             m_Rigidbody.velocity = Vector3.zero;
 
-            if (m_CanClimb)
-            {
-                transform.rotation = Quaternion.FromToRotation(Vector3.forward, -m_WallNormal);
-            }
+            //if (m_CanClimb)
+            //{
+            //    transform.rotation = Quaternion.FromToRotation(transform.forward, -m_WallNormal);
+            //}
 
             if (canClimbNextFrame)
             {
-                transform.Translate(transform.InverseTransformDirection(move) * Time.deltaTime);
+                //transform.Translate(transform.InverseTransformDirection(move) * Time.deltaTime);
                 m_WallPosition.Translate(m_WallPosition.InverseTransformDirection(move) * Time.deltaTime, Space.Self);
+
+                transform.rotation = Quaternion.Lerp(transform.rotation, m_WallPosition.rotation, Time.deltaTime * 10f);
+                transform.position = m_WallPosition.position - transform.forward * m_Capsule.radius;
             }
         }
+
     }
 
     void HandleAirborneMovement(Vector3 move)
@@ -377,11 +381,11 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     bool CheckWallStatus()
     {
-        if (!m_ClimbStarted)
-        {
-            m_WallPosition.parent = this.transform;
-            m_WallPosition.localPosition = Vector3.zero;
-        }
+        //if (!m_ClimbStarted)
+        //{
+        //    m_WallPosition.parent = this.transform;
+        //    m_WallPosition.localPosition = Vector3.zero;
+        //}
 
         Vector3 extraY = transform.up * 0.6f;
 
@@ -389,25 +393,24 @@ public class ThirdPersonCharacter : MonoBehaviour
 
         Debug.DrawLine(transform.position + extraY, transform.position + (transform.forward * 0.5f) + extraY, Color.magenta);
 
+
         // 0.1f is a small offset to start the ray from inside the character
         // it is also good to note that the transform position in the sample assets is at the base of the character
         if (Physics.Raycast(transform.position + extraY, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
         {
             m_WallNormal = hitInfo.normal;
+            m_WallPosition.rotation = Quaternion.FromToRotation(Vector3.forward, -m_WallNormal);
 
             if (!m_ClimbStarted)
             {
-                m_WallPosition.parent = hitInfo.transform;
+                //m_WallPosition.parent = hitInfo.transform;
                 m_WallPosition.position = hitInfo.point - extraY;
                 m_ClimbStarted = true;
             }
-
             return true;
         }
-        else
-        {
-            return false;
-        }
+
+        return false;
     }
 
     void CheckGroundStatus()
