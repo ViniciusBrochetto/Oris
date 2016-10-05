@@ -45,6 +45,55 @@ public class ClimbController : MonoBehaviour
 
         Ray ray;
         RaycastHit hit;
+
+        Vector3 avgPos = Vector3.zero;
+        for (int i = 0; i < limitPositions.Length; i++)
+        {
+            ray = new Ray(limitPositions[i].position + move, limitPositions[i].forward);
+
+            if (!Physics.Raycast(ray, out hit, maxDistance, grabMask.value))
+            {
+                if (i < 2)
+                    ci.feetConnected = false;
+                else
+                    ci.handsConnected = false;
+
+                if (debug)
+                    Debug.DrawRay(ray.origin, ray.direction * maxDistance, Color.red);
+            }
+            else
+            {
+                ci.avgNormal += hit.normal;
+
+                if (debug)
+                    Debug.DrawRay(ray.origin, ray.direction * maxDistance, Color.green);
+            }
+            avgPos += limitPositions[i].position + move;
+        }
+
+        ci.avgNormal /= 4f;
+        avgPos /= 4f;
+
+        ray = new Ray(transform.position, transform.forward);
+        if (Physics.Raycast(ray, out hit, maxDistance, grabMask.value))
+        {
+            //ci.avgNormal = hit.normal;
+            ci.grabPosition = hit.point;
+
+            Debug.DrawRay(hit.point, hit.normal, Color.yellow);
+        }
+
+        return ci;
+    }
+
+    public ClimbInfo ClimbSphere(Vector3 move)
+    {
+        ClimbInfo ci = new ClimbInfo();
+        ci.feetConnected = true;
+        ci.handsConnected = true;
+
+        Ray ray;
+        RaycastHit hit;
         for (int i = 0; i < limitPositions.Length; i++)
         {
             ray = new Ray(limitPositions[i].position + move, limitPositions[i].forward + move);
@@ -61,6 +110,13 @@ public class ClimbController : MonoBehaviour
             }
             else
             {
+                if (Vector3.Dot(transform.forward, hit.normal) > -0.5f)
+                {
+                    if (i < 2)
+                        ci.feetConnected = false;
+                    else
+                        ci.handsConnected = false;
+                }
                 if (debug)
                     Debug.DrawRay(ray.origin, ray.direction * maxDistance, Color.green);
             }
@@ -85,4 +141,5 @@ public struct ClimbInfo
     public bool handsConnected;
     public bool feetConnected;
     public Vector3 grabPosition;
+    public Vector3 avgNormal;
 }

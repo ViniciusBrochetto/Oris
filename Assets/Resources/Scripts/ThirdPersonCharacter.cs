@@ -88,31 +88,68 @@ public class ThirdPersonCharacter : MonoBehaviour
             return;
         }
 
-        Vector3 o_Move = move;
 
         if (move.magnitude > 1f)
             move.Normalize();
 
+        Vector3 world_Move = move;
         move = transform.InverseTransformDirection(move);
 
         if (!temp_HangWait && climb)
         {
-            if (CheckWallStatus())
+            ClimbInfo m_ClimbInfo;
+            m_ClimbInfo = m_ClimbController.Climb();
+            m_CanClimb = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
+
+            if (m_CanClimb)
             {
-                ClimbInfo m_ClimbInfo;
-                m_ClimbInfo = m_ClimbController.Climb(move * Time.deltaTime);
-                m_CanClimbNextFrame = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
+                m_Rigidbody.useGravity = false;
 
-                m_ClimbInfo = m_ClimbController.Climb();
-                m_CanClimb = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
-
-                if (m_CanClimb)
+                m_IsClimbing = true;
+                if (m_IsPreparingJump)
                 {
-                    m_IsClimbing = true;
-                    HandleClimbing(o_Move, jump, jumpRelease, m_CanClimbNextFrame);
+                    if (jumpRelease)
+                    {
+                        m_IsPreparingJump = false;
+                        WallJump();
+                        StartCoroutine(WallJumpTimer());
+                        return;
+                    }
+                }
+                else
+                {
+                    if (jump)
+                    {
+                        m_IsPreparingJump = true;
+                        return;
+                    }
+
+                    m_ClimbInfo = m_ClimbController.Climb(world_Move * Time.deltaTime * 4f);
+                    m_CanClimbNextFrame = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
+
+                    if (m_CanClimbNextFrame)
+                    {
+                        transform.position = Vector3.Lerp(transform.position,m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
+                        transform.LookAt(m_ClimbInfo.grabPosition);
+
+
+                        //m_Rigidbody.MovePosition(Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition, 0.25f));
+                        //transform.rotation = /*Quaternion.Lerp(transform.rotation, */Quaternion.FromToRotation(transform.forward, -m_ClimbInfo.avgNormal) * transform.rotation/*, Time.deltaTime * 8f)*/;
+                        //transform.rotation = /*Quaternion.Lerp(transform.rotation, */Quaternion.FromToRotation(transform.up, Vector3.ProjectOnPlane(Vector3.up, m_ClimbInfo.avgNormal)) * transform.rotation/*, Time.deltaTime * 10f)*/;
+                        //transform.RotateAround(m_ClimbInfo.grabPosition, transform.up, Quaternion.Angle())
+
+
+                        transform.Translate(move * Time.deltaTime, Space.Self);
+                        
+                        
+                    }
                 }
 
                 return;
+            }
+            else
+            {
+                m_Rigidbody.useGravity = true;
             }
         }
 
@@ -120,7 +157,6 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_IsPreparingJump = false;
         m_IsClimbing = false;
         m_ClimbStarted = false;
-        m_Rigidbody.useGravity = true;
 
         CheckGroundStatus();
 
@@ -135,19 +171,21 @@ public class ThirdPersonCharacter : MonoBehaviour
         // control and velocity handling is different when grounded and airborne:
         if (m_IsGrounded)
         {
-            if (roll)
-            {
-                StartCoroutine(HandleRoll(move));
-            }
-            else
-            {
-                HandleGroundedMovement(crouch, jump);
-
-                if (m_IsRolling)
-                {
-                    transform.Translate(move * m_RollPower * Time.deltaTime);
-                }
-            }
+            //if (roll)
+            //{
+            //    StartCoroutine(HandleRoll());
+            //}
+            //else
+            //{
+            //if (m_IsRolling)
+            //{
+            //    transform.Translate(move * m_RollPower * Time.deltaTime);
+            //}
+            //else
+            //{
+            HandleGroundedMovement(crouch, jump);
+            //}
+            //}
         }
         else
         {
@@ -188,8 +226,9 @@ public class ThirdPersonCharacter : MonoBehaviour
 
         m_IsGrounded = false;
         m_Animator.applyRootMotion = false;
-        m_GroundCheckDistance = 0.1f;
+        m_GroundCheckDistance = 0.01f;
         m_Rigidbody.useGravity = true;
+        m_IsClimbing = false;
     }
 
     void ScaleCapsuleForCrouch(bool crouch)
@@ -267,48 +306,6 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
     }
 
-    void HandleClimbing(Vector3 move, bool jump, bool jumpRelease, bool canClimbNextFrame)
-    {
-
-
-        if (m_IsPreparingJump)
-        {
-            if (jumpRelease)
-            {
-                m_IsPreparingJump = false;
-                WallJump();
-                StartCoroutine(WallJumpTimer());
-                return;
-            }
-        }
-        else
-        {
-            if (jump)
-            {
-                m_IsPreparingJump = true;
-                return;
-            }
-
-            m_Rigidbody.useGravity = false;
-            m_Rigidbody.velocity = Vector3.zero;
-
-            //if (m_CanClimb)
-            //{
-            //    transform.rotation = Quaternion.FromToRotation(transform.forward, -m_WallNormal);
-            //}
-
-            if (canClimbNextFrame)
-            {
-                //transform.Translate(transform.InverseTransformDirection(move) * Time.deltaTime);
-                m_WallPosition.Translate(m_WallPosition.InverseTransformDirection(move) * Time.deltaTime, Space.Self);
-
-                transform.rotation = Quaternion.Lerp(transform.rotation, m_WallPosition.rotation, Time.deltaTime * 10f);
-                transform.position = m_WallPosition.position - transform.forward * m_Capsule.radius;
-            }
-        }
-
-    }
-
     void HandleAirborneMovement(Vector3 move)
     {
         // apply extra gravity from multiplier:
@@ -329,27 +326,20 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
     }
 
-    IEnumerator HandleRoll(Vector3 move)
+    IEnumerator HandleRoll()
     {
-        //m_IsGrounded = false;
-        //m_Animator.applyRootMotion = false;
-
         m_IsRolling = true;
 
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.4f);
 
-        //m_Crouching = false;
-        //m_IsGrounded = true;
         m_IsRolling = false;
-        //m_Animator.applyRootMotion = true;
     }
 
     void Jump()
     {
-        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x * 0.5f, m_JumpPower, m_Rigidbody.velocity.z * 0.5f);
+        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
         m_IsGrounded = false;
-        m_Animator.applyRootMotion = false;
-        m_GroundCheckDistance = 0.1f;
+        m_GroundCheckDistance = 0.01f;
     }
 
     void ApplyExtraTurnRotation()
@@ -369,13 +359,17 @@ public class ThirdPersonCharacter : MonoBehaviour
     {
         // we implement this function to override the default root motion.
         // this allows us to modify the positional speed before it's applied.
-        if (m_IsGrounded && Time.deltaTime > 0)
+        if (!m_IsClimbing && m_IsGrounded && Time.deltaTime > 0)
         {
             Vector3 v = (m_Animator.deltaPosition * m_MoveSpeedMultiplier) / Time.deltaTime;
 
             // we preserve the existing y part of the current velocity.
             v.y = m_Rigidbody.velocity.y;
             m_Rigidbody.velocity = v;
+        }
+        else if (m_IsClimbing)
+        {
+            m_Rigidbody.velocity = Vector3.zero;
         }
     }
 
@@ -399,14 +393,17 @@ public class ThirdPersonCharacter : MonoBehaviour
         if (Physics.Raycast(transform.position + extraY, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
         {
             m_WallNormal = hitInfo.normal;
-            m_WallPosition.rotation = Quaternion.FromToRotation(Vector3.forward, -m_WallNormal);
+            m_WallPosition.rotation = Quaternion.FromToRotation(transform.forward, -m_WallNormal) * transform.rotation;
 
-            if (!m_ClimbStarted)
-            {
-                //m_WallPosition.parent = hitInfo.transform;
-                m_WallPosition.position = hitInfo.point - extraY;
-                m_ClimbStarted = true;
-            }
+            //if (!m_ClimbStarted)
+            //{
+            //m_WallPosition.parent = hitInfo.transform;
+            m_WallPosition.position = hitInfo.point - extraY;
+            m_ClimbStarted = true;
+            //}
+
+            transform.parent = hitInfo.transform;
+
             return true;
         }
 

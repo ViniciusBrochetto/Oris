@@ -42,7 +42,7 @@ namespace UnityStandardAssets.Cameras
             }
             if (m_UpdateType == UpdateType.FixedUpdate)
             {
-                FollowTarget(Time.deltaTime);
+                FollowTarget(Time.fixedDeltaTime);
             }
         }
 

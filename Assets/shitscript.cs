@@ -6,6 +6,8 @@ public class shitscript : MonoBehaviour {
     SkinnedMeshRenderer rend;
     MeshCollider rend1;
 
+
+
     // Use this for initialization
     void Start () {
         rend = GetComponent<SkinnedMeshRenderer>();

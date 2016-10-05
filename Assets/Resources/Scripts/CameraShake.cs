@@ -41,13 +41,8 @@ public class CameraShake : MonoBehaviour
         if (shakeCR != null)
         {
             StopCoroutine(shakeCR);
-
-            mainCam.transform.localPosition = originalCamPos;
-            mainCam.transform.localRotation = originalCamRot;
         }
 
-        originalCamPos = mainCam.transform.localPosition;
-        originalCamRot = mainCam.transform.localRotation;
         shakeCR = StartCoroutine(ProcessShake(duration, intensity, decay));
     }
 
@@ -95,5 +90,8 @@ public class CameraShake : MonoBehaviour
 
             yield return new WaitForEndOfFrame();
         }
+
+        mainCam.transform.localPosition = originalCamPos;
+        mainCam.transform.localRotation = originalCamRot;
     }
 }
