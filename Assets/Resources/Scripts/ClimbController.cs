@@ -80,6 +80,12 @@ public class ClimbController : MonoBehaviour
             //ci.avgNormal = hit.normal;
             ci.grabPosition = hit.point;
 
+            if (hit.transform.GetComponent<shitscript>())
+                ci.parentTransform = hit.transform.GetComponent<shitscript>().parentBone;
+            else
+                ci.parentTransform = hit.transform;
+
+
             Debug.DrawRay(hit.point, hit.normal, Color.yellow);
         }
 
@@ -142,4 +148,5 @@ public struct ClimbInfo
     public bool feetConnected;
     public Vector3 grabPosition;
     public Vector3 avgNormal;
+    public Transform parentTransform;
 }

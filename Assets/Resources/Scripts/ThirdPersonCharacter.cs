@@ -101,8 +101,15 @@ public class ThirdPersonCharacter : MonoBehaviour
             m_ClimbInfo = m_ClimbController.Climb();
             m_CanClimb = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
 
+            Debug.Log(Vector3.Angle(Vector3.up, m_ClimbInfo.avgNormal));
+
+            m_CanClimb = m_CanClimb && Vector3.Angle(Vector3.up, m_ClimbInfo.avgNormal) > 40f;
+
+
             if (m_CanClimb)
             {
+                transform.parent = m_ClimbInfo.parentTransform;
+
                 m_Rigidbody.useGravity = false;
 
                 m_IsClimbing = true;
@@ -149,6 +156,7 @@ public class ThirdPersonCharacter : MonoBehaviour
             }
             else
             {
+                transform.parent = null;
                 m_Rigidbody.useGravity = true;
             }
         }
