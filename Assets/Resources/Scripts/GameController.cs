@@ -7,12 +7,24 @@ public class GameController : MonoBehaviour
     public static GameController instance;
     public static GameControllerProperties gameControllerProperties;
 
+    public BossController bossController;
+    public ThirdPersonCharacter playerController;
+    public CameraShake cameraShakeController;
+
     void Awake()
     {
         if (instance == null)
+        {
             instance = this;
+
+            bossController = FindObjectOfType<BossController>();
+            playerController = FindObjectOfType<ThirdPersonCharacter>();
+            cameraShakeController = FindObjectOfType<CameraShake>();
+        }
         else
+        {
             Debug.Log("Game Controller instance already exists.");
+        }
     }
 
     #region PAUSE/RESUME/RETURN TO MENU/SAVE

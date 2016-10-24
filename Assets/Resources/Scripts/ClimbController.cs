@@ -85,9 +85,13 @@ public class ClimbController : MonoBehaviour
             else
                 ci.parentTransform = hit.transform;
 
+            if (hit.transform.tag.Contains("Boss"))
+                ci.isBoss = true;
 
             Debug.DrawRay(hit.point, hit.normal, Color.yellow);
         }
+
+
 
         return ci;
     }
@@ -149,4 +153,5 @@ public struct ClimbInfo
     public Vector3 grabPosition;
     public Vector3 avgNormal;
     public Transform parentTransform;
+    public bool isBoss;
 }

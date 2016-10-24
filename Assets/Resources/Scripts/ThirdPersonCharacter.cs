@@ -5,6 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(CapsuleCollider))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(ClimbController))]
+
 public class ThirdPersonCharacter : MonoBehaviour
 {
     [SerializeField]
@@ -88,7 +89,6 @@ public class ThirdPersonCharacter : MonoBehaviour
             return;
         }
 
-
         if (move.magnitude > 1f)
             move.Normalize();
 
@@ -100,11 +100,10 @@ public class ThirdPersonCharacter : MonoBehaviour
             ClimbInfo m_ClimbInfo;
             m_ClimbInfo = m_ClimbController.Climb();
             m_CanClimb = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
-
-            Debug.Log(Vector3.Angle(Vector3.up, m_ClimbInfo.avgNormal));
-
             m_CanClimb = m_CanClimb && Vector3.Angle(Vector3.up, m_ClimbInfo.avgNormal) > 40f;
 
+            if (m_ClimbInfo.isBoss)
+                GameController.instance.bossController.SetPhase(m_ClimbInfo.parentTransform.tag);
 
             if (m_CanClimb)
             {
@@ -136,19 +135,12 @@ public class ThirdPersonCharacter : MonoBehaviour
 
                     if (m_CanClimbNextFrame)
                     {
-                        transform.position = Vector3.Lerp(transform.position,m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
+                        transform.position = Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
                         transform.LookAt(m_ClimbInfo.grabPosition);
 
-
-                        //m_Rigidbody.MovePosition(Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition, 0.25f));
-                        //transform.rotation = /*Quaternion.Lerp(transform.rotation, */Quaternion.FromToRotation(transform.forward, -m_ClimbInfo.avgNormal) * transform.rotation/*, Time.deltaTime * 8f)*/;
-                        //transform.rotation = /*Quaternion.Lerp(transform.rotation, */Quaternion.FromToRotation(transform.up, Vector3.ProjectOnPlane(Vector3.up, m_ClimbInfo.avgNormal)) * transform.rotation/*, Time.deltaTime * 10f)*/;
-                        //transform.RotateAround(m_ClimbInfo.grabPosition, transform.up, Quaternion.Angle())
-
-
                         transform.Translate(move * Time.deltaTime, Space.Self);
-                        
-                        
+
+
                     }
                 }
 
@@ -223,13 +215,12 @@ public class ThirdPersonCharacter : MonoBehaviour
 
         Vector3 m_CamForward = Vector3.Scale(Camera.main.transform.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 jumpDir = ((v * m_CamForward + h * Camera.main.transform.right)).normalized * m_JumpPower * 0.5f;
-
-
         jumpDir.y = m_JumpPower;
+
         m_Rigidbody.velocity = jumpDir;
 
-        if (jumpDir.y != m_JumpPower)
-            transform.localRotation = Quaternion.LookRotation(Vector3.Scale(m_Rigidbody.velocity, new Vector3(1, 0, 1)));
+        //if (jumpDir.y != m_JumpPower)
+        //    transform.localRotation = Quaternion.LookRotation(Vector3.Scale(m_Rigidbody.velocity, new Vector3(1, 0, 1)));
 
 
         m_IsGrounded = false;
@@ -381,43 +372,6 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
     }
 
-    bool CheckWallStatus()
-    {
-        //if (!m_ClimbStarted)
-        //{
-        //    m_WallPosition.parent = this.transform;
-        //    m_WallPosition.localPosition = Vector3.zero;
-        //}
-
-        Vector3 extraY = transform.up * 0.6f;
-
-        RaycastHit hitInfo;
-
-        Debug.DrawLine(transform.position + extraY, transform.position + (transform.forward * 0.5f) + extraY, Color.magenta);
-
-
-        // 0.1f is a small offset to start the ray from inside the character
-        // it is also good to note that the transform position in the sample assets is at the base of the character
-        if (Physics.Raycast(transform.position + extraY, transform.forward, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("WallEdge")))
-        {
-            m_WallNormal = hitInfo.normal;
-            m_WallPosition.rotation = Quaternion.FromToRotation(transform.forward, -m_WallNormal) * transform.rotation;
-
-            //if (!m_ClimbStarted)
-            //{
-            //m_WallPosition.parent = hitInfo.transform;
-            m_WallPosition.position = hitInfo.point - extraY;
-            m_ClimbStarted = true;
-            //}
-
-            transform.parent = hitInfo.transform;
-
-            return true;
-        }
-
-        return false;
-    }
-
     void CheckGroundStatus()
     {
         RaycastHit hitInfo;
@@ -432,12 +386,21 @@ public class ThirdPersonCharacter : MonoBehaviour
             m_GroundNormal = hitInfo.normal;
             m_IsGrounded = true;
             m_Animator.applyRootMotion = true;
+
+            if (hitInfo.transform.tag.Contains("Boss"))
+            {
+                if (hitInfo.transform.GetComponent<shitscript>())
+                    this.transform.parent = hitInfo.transform.GetComponent<shitscript>().parentBone.transform;
+            }
+
+            m_Capsule.material.staticFriction = 1f;
         }
         else
         {
             m_IsGrounded = false;
             m_GroundNormal = Vector3.up;
             m_Animator.applyRootMotion = false;
+            this.transform.parent = null;
         }
     }
 }
