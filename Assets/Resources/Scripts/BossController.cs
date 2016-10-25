@@ -9,7 +9,10 @@ public class BossController : MonoBehaviour
 
     private bool m_PhaseUpdated;
     private Animator m_Anim;
+
+    [SerializeField]
     private float m_ShakeAvgTime = 10f;
+    [SerializeField]
     private float m_AttackAvgTime = 10f;
 
     public bool isAttacking = false;
@@ -31,27 +34,28 @@ public class BossController : MonoBehaviour
             case BossPhases.f0:
                 if (canAttack && !isAttacking)
                 {
-                    isAttacking = true;
                     canAttack = false;
                     m_Anim.SetTrigger("start_attack");
                     StartCoroutine(AttackCooldown());
                 }
                 break;
             case BossPhases.f1:
-                if (canShake && !isShaking)
+                if (canAttack && !isShaking)
                 {
-                    isShaking = true;
+                    m_BossPhase = BossPhases.f0;
+                }
+                else if (canShake && !isShaking)
+                {
                     canShake = false;
-                    //m_Anim.SetTrigger("start_shake");
+                    m_Anim.SetTrigger("start_shake");
                     StartCoroutine(ShakeCooldown());
                 }
                 break;
             case BossPhases.f2:
                 if (canShake && !isShaking)
                 {
-                    isShaking = true;
                     canShake = false;
-                    //m_Anim.SetTrigger("start_shake");
+                    m_Anim.SetTrigger("start_shake");
                     StartCoroutine(ShakeCooldown());
                 }
                 break;
@@ -66,7 +70,7 @@ public class BossController : MonoBehaviour
             default:
                 break;
         }
- 
+
     }
 
     private IEnumerator AttackCooldown()
@@ -80,15 +84,35 @@ public class BossController : MonoBehaviour
 
     private IEnumerator ShakeCooldown()
     {
-        yield return new WaitForSeconds(m_AttackAvgTime + (Random.value - 0.5f) * 4f);
+        while (isShaking)
+            yield return new WaitForEndOfFrame();
 
-        isShaking = false;
+        yield return new WaitForSeconds(m_ShakeAvgTime + (Random.value - 0.5f) * 4f);
+
         canShake = true;
     }
 
-
     public void SetPhase(BossPhases phase)
     {
+        switch (phase)
+        {
+            case BossPhases.f0:
+                break;
+            case BossPhases.f1:
+                break;
+            case BossPhases.f2:
+                break;
+            case BossPhases.f3:
+                break;
+            case BossPhases.f4:
+                break;
+            case BossPhases.f5:
+                break;
+            case BossPhases.f6:
+                break;
+            default:
+                break;
+        }
         m_BossPhase = phase;
     }
 

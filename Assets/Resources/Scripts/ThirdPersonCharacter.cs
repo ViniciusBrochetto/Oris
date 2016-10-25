@@ -41,8 +41,6 @@ public class ThirdPersonCharacter : MonoBehaviour
     bool m_CanClimb = false;
     bool m_CanClimbNextFrame = false;
 
-    bool m_ClimbStarted = false;
-
     float m_OrigGroundCheckDistance;
     const float k_Half = 0.5f;
     float m_TurnAmount;
@@ -156,7 +154,6 @@ public class ThirdPersonCharacter : MonoBehaviour
 
         m_IsPreparingJump = false;
         m_IsClimbing = false;
-        m_ClimbStarted = false;
 
         CheckGroundStatus();
 
