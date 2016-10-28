@@ -997,14 +997,6 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.021590909
-        functionName: setAttacking
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
       - time: 0.6492538
         functionName: setShaking
         data: 
@@ -1015,6 +1007,14 @@ ModelImporter:
         messageOptions: 0
       - time: 0.99253744
         functionName: setShaking
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.99350977
+        functionName: setAttacking
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
           type: 3}
@@ -5269,7 +5269,7 @@ ModelImporter:
     addColliders: 0
     importBlendShapes: 0
     swapUVChannels: 0
-    generateSecondaryUV: 1
+    generateSecondaryUV: 0
     useFileUnits: 1
     optimizeMeshForGPU: 0
     keepQuads: 0
@@ -5281,8 +5281,8 @@ ModelImporter:
     useFileScale: 1
   tangentSpace:
     normalSmoothAngle: 0
-    normalImportMode: 0
-    tangentImportMode: 2
+    normalImportMode: 1
+    tangentImportMode: 3
   importAnimation: 1
   copyAvatar: 0
   humanDescription:

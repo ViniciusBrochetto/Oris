@@ -36,6 +36,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     bool m_IsRolling;
     bool m_IsCrouching;
     bool m_IsPreparingJump;
+    bool m_isInteracting;
     public bool m_IsStruggling;
 
     bool m_CanClimb = false;
@@ -77,10 +78,10 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     public void Move(Vector3 move, bool crouch, bool jump)
     {
-        Move(move, crouch, jump, false, false, false);
+        Move(move, crouch, jump, false, false, false, false);
     }
 
-    public void Move(Vector3 move, bool crouch, bool jump, bool jumpRelease, bool climb, bool roll)
+    public void Move(Vector3 move, bool crouch, bool jump, bool jumpRelease, bool climb, bool roll, bool interact)
     {
         if (m_IsStruggling)
         {
@@ -93,6 +94,14 @@ public class ThirdPersonCharacter : MonoBehaviour
         Vector3 world_Move = move;
         move = transform.InverseTransformDirection(move);
 
+        if (interact)
+        {
+            if (GameController.instance.interactable != null)
+            {
+                GameController.instance.interactable.Interact();
+            }
+        }
+
         if (!temp_HangWait && climb)
         {
             ClimbInfo m_ClimbInfo;
@@ -102,6 +111,8 @@ public class ThirdPersonCharacter : MonoBehaviour
 
             if (m_ClimbInfo.isBoss)
                 GameController.instance.bossController.SetPhase(m_ClimbInfo.parentTransform.tag);
+
+            GameController.instance.bossController.SetPlayerClimbing(m_CanClimb && m_ClimbInfo.isBoss);
 
             if (m_CanClimb)
             {

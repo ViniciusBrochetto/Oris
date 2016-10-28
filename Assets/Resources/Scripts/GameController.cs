@@ -10,6 +10,7 @@ public class GameController : MonoBehaviour
     public BossController bossController;
     public ThirdPersonCharacter playerController;
     public CameraShake cameraShakeController;
+    public IInteractable interactable;
 
     void Awake()
     {

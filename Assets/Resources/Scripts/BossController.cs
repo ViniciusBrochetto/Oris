@@ -47,7 +47,7 @@ public class BossController : MonoBehaviour
                 else if (canShake && !isShaking)
                 {
                     canShake = false;
-                    m_Anim.SetTrigger("start_shake");
+                    //m_Anim.SetTrigger("start_shake");
                     StartCoroutine(ShakeCooldown());
                 }
                 break;
@@ -101,8 +101,14 @@ public class BossController : MonoBehaviour
             case BossPhases.f1:
                 break;
             case BossPhases.f2:
+                m_Anim.SetTrigger("start_f2");
+                isShaking = false;
+                isAttacking = false;
                 break;
             case BossPhases.f3:
+                m_Anim.SetTrigger("start_f3");
+                isShaking = false;
+                isAttacking = false;
                 break;
             case BossPhases.f4:
                 break;
@@ -118,12 +124,18 @@ public class BossController : MonoBehaviour
 
     public void SetPhase(string tag)
     {
-        if (tag == "Boss_StartF1")
+        if (tag == "Boss_StartF1" && m_BossPhase != BossPhases.f1)
         {
+            isAttacking = false;
             m_Anim.SetTrigger("start_f1");
             m_BossPhase = BossPhases.f1;
             canShake = true;
         }
+    }
+
+    public void SetPlayerClimbing(bool isClimbing)
+    {
+        m_Anim.SetBool("player_climbing", isClimbing);
     }
 
     public void setShaking(int i)

@@ -13,7 +13,7 @@ public class ThirdPersonUserControl : MonoBehaviour
     private bool m_JumpRelease;
     private bool m_Climb;
     private bool m_Roll;
-
+    private bool m_Interact;
 
     private void Start()
     {
@@ -47,6 +47,10 @@ public class ThirdPersonUserControl : MonoBehaviour
         {
             m_Roll = Input.GetKeyDown(KeyCode.V);
         }
+        if (!m_Interact)
+        {
+            m_Interact = Input.GetKeyDown(KeyCode.E);
+        }
 
         m_Climb = Input.GetKey(KeyCode.F);
 
@@ -72,10 +76,11 @@ public class ThirdPersonUserControl : MonoBehaviour
             m_Move *= 0.5f;
 
         // pass all parameters to the character control script
-        m_Character.Move(m_Move, crouch, m_Jump, m_JumpRelease, /*m_Climb*/ true, m_Roll);
+        m_Character.Move(m_Move, crouch, m_Jump, m_JumpRelease, /*m_Climb*/ true, m_Roll, m_Interact);
         m_Jump = false;
         m_JumpRelease = false;
         m_Roll = false;
+        m_Interact = false;
     }
 }
 
