@@ -60,7 +60,8 @@ public class ThirdPersonCharacter : MonoBehaviour
     private ClimbController m_ClimbController;
     private RagdollController m_RagdollController;
     private IKController m_IKController;
-
+    public HingeJoint m_Joint;
+    public Rigidbody m_JointRB;
 
     void Start()
     {
@@ -75,6 +76,12 @@ public class ThirdPersonCharacter : MonoBehaviour
 
         m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         m_OrigGroundCheckDistance = m_GroundCheckDistance;
+
+    }
+
+    void LateUpdate()
+    {
+        transform.localScale = Vector3.one;
     }
 
     public void Move(Vector3 move, bool crouch, bool jump)
@@ -117,9 +124,8 @@ public class ThirdPersonCharacter : MonoBehaviour
 
             if (m_CanClimb)
             {
-                transform.parent = m_ClimbInfo.parentTransform;
+                m_Joint.transform.parent = m_ClimbInfo.parentTransform;
 
-                m_Rigidbody.useGravity = false;
 
                 m_IsClimbing = true;
                 if (m_IsPreparingJump)
@@ -143,14 +149,32 @@ public class ThirdPersonCharacter : MonoBehaviour
                     m_ClimbInfo = m_ClimbController.Climb(world_Move * Time.deltaTime * 4f);
                     m_CanClimbNextFrame = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
 
-                    if (m_CanClimbNextFrame)
+                    if (!GameController.instance.bossController.isShaking)
                     {
-                        transform.position = Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
-                        transform.LookAt(m_ClimbInfo.grabPosition);
+                        if (m_CanClimbNextFrame)
+                        {
+                            m_Rigidbody.useGravity = false;
 
-                        transform.Translate(move * Time.deltaTime, Space.Self);
+                            transform.parent = m_ClimbInfo.parentTransform;
 
+                            transform.position = Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
+                            transform.LookAt(m_ClimbInfo.grabPosition);
+                            transform.Translate(move * Time.deltaTime, Space.Self);
 
+                            m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
+                            m_Joint.connectedBody = null;
+                            m_JointRB.constraints = RigidbodyConstraints.FreezeAll;
+
+                        }
+                    }
+                    else
+                    {
+                        if (m_Joint.connectedBody == null)
+                        {
+                            m_Joint.connectedBody = m_JointRB;
+                            m_JointRB.constraints = RigidbodyConstraints.None;
+                            m_JointRB.useGravity = true;
+                        }
                     }
                 }
 
@@ -158,8 +182,12 @@ public class ThirdPersonCharacter : MonoBehaviour
             }
             else
             {
-                transform.parent = null;
+                m_JointRB.constraints = RigidbodyConstraints.FreezeAll;
             }
+        }
+        else
+        {
+            GameController.instance.bossController.SetPlayerClimbing(false);
         }
 
         m_Rigidbody.useGravity = true;
@@ -414,7 +442,6 @@ public class ThirdPersonCharacter : MonoBehaviour
 
             m_IsGroundedOnBoss = hitInfo.transform.tag.Contains("Boss");
 
-            m_Capsule.material.staticFriction = 1f;
         }
         else
         {

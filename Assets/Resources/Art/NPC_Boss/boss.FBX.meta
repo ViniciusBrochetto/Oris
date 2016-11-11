@@ -192,10 +192,10 @@ ModelImporter:
     7400018: anm_boss_shake_f2
     7400020: anm_boss_damage_f2
     7400022: anm_boss_idle_f3
-    7400024: anm_boss_attack_f3_intro
-    7400026: anm_boss_attack_f3_prep
-    7400028: anm_boss_attack_f3_doing
-    7400030: anm_boss_attack_f3_hold
+    7400024: anm_boss_attack_f4
+    7400026: anm_boss_attack_f4_end
+    7400028: anm_boss_idle_f4_climbing
+    7400030: anm_boss_shake_f4
     7400032: anm_boss_damage_f3
     7400034: anm_boss_idle_f4
     7400036: anm_boss_shake_f4
@@ -1021,6 +1021,14 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
+      - time: 0.4987593
+        functionName: StartCameraShake
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask:
       - path: 
         weight: 1
@@ -1382,6 +1390,14 @@ ModelImporter:
           type: 3}
         floatParameter: 0
         intParameter: 1
+        messageOptions: 0
+      - time: 0.55086845
+        functionName: StartCameraShake
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
         messageOptions: 0
       - time: 0.9846153
         functionName: setShaking
@@ -2430,7 +2446,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: anm_boss_attack_f3_intro
+      name: anm_boss_attack_f4
       takeName: Take 001
       firstFrame: 2870
       lastFrame: 2980
@@ -2452,7 +2468,14 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.74689865
+        functionName: StartCameraShake
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask:
       - path: 
         weight: 1
@@ -2607,7 +2630,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: anm_boss_attack_f3_prep
+      name: anm_boss_attack_f4_end
       takeName: Take 001
       firstFrame: 2990
       lastFrame: 3250
@@ -2629,7 +2652,14 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.36724597
+        functionName: StartCameraShake
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask:
       - path: 
         weight: 1
@@ -2784,7 +2814,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: anm_boss_attack_f3_doing
+      name: anm_boss_idle_f4
       takeName: Take 001
       firstFrame: 3260
       lastFrame: 3340
@@ -2794,7 +2824,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -2961,7 +2991,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: anm_boss_attack_f3_hold
+      name: anm_boss_shake_f4
       takeName: Take 001
       firstFrame: 3350
       lastFrame: 3660
@@ -3315,7 +3345,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: anm_boss_idle_f4
+      name: anm_boss_idle_f4_climbing
       takeName: Take 001
       firstFrame: 3820
       lastFrame: 3900

@@ -26,7 +26,7 @@ public class FreeLookCam : PivotBasedCameraRig
     [SerializeField]
     private bool m_LockCursor = false;                   // Whether the cursor should be hidden and locked.t.
     [SerializeField]
-    private bool m_CameraLockedForBoss = false;
+    public bool m_CameraLockedForBoss = false;
 
     private float m_LookAngle;                    // The rig's y axis rotation.
     private float m_TiltAngle;                    // The pivot's x axis rotation.

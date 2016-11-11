@@ -10,6 +10,7 @@ public class GameController : MonoBehaviour
     public BossController bossController;
     public ThirdPersonCharacter playerController;
     public CameraShake cameraShakeController;
+    public FreeLookCam cameraController;
     public IInteractable interactable;
 
     void Awake()
@@ -21,6 +22,7 @@ public class GameController : MonoBehaviour
             bossController = FindObjectOfType<BossController>();
             playerController = FindObjectOfType<ThirdPersonCharacter>();
             cameraShakeController = FindObjectOfType<CameraShake>();
+            cameraController = FindObjectOfType<FreeLookCam>();
         }
         else
         {

@@ -44,7 +44,7 @@ public class BossController : MonoBehaviour
                 {
                     m_BossPhase = BossPhases.f0;
                 }
-                else if (canShake && !isShaking && GameController.instance.playerController.m_IsClimbing)
+                else if (canShake && !isShaking && GameController.instance.playerController.m_IsClimbing && GameController.instance.cameraController.m_CameraLockedForBoss)
                 {
                     canShake = false;
                     m_Anim.SetTrigger("start_shake");
@@ -62,6 +62,13 @@ public class BossController : MonoBehaviour
             case BossPhases.f3:
                 break;
             case BossPhases.f4:
+                if (canAttack && !isAttacking)
+                {
+                    canAttack = false;
+                    m_Anim.SetTrigger("start_attack");
+                    StartCoroutine(AttackCooldown());
+                }
+                break;
                 break;
             case BossPhases.f5:
                 break;
@@ -116,10 +123,19 @@ public class BossController : MonoBehaviour
                 isAttacking = false;
                 break;
             case BossPhases.f4:
+                m_Anim.SetTrigger("start_f4");
+                isShaking = false;
+                isAttacking = false;
                 break;
             case BossPhases.f5:
+                m_Anim.SetTrigger("start_f5");
+                isShaking = false;
+                isAttacking = false;
                 break;
             case BossPhases.f6:
+                m_Anim.SetTrigger("start_f6");
+                isShaking = false;
+                isAttacking = false;
                 break;
             default:
                 break;
@@ -155,7 +171,7 @@ public class BossController : MonoBehaviour
 
     public void StartCameraShake()
     {
-        GameController.instance.cameraShakeController.RequestShake(4f, 0.5f, true);
+        GameController.instance.cameraShakeController.RequestShake(3f, 0.25f, true);
     }
 
     public enum BossPhases

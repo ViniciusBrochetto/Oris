@@ -76,7 +76,7 @@ public class ThirdPersonUserControl : MonoBehaviour
             m_Move *= 0.5f;
 
         // pass all parameters to the character control script
-        m_Character.Move(m_Move, crouch, m_Jump, m_JumpRelease, m_Climb, m_Roll, m_Interact);
+        m_Character.Move(m_Move, crouch, m_Jump, m_JumpRelease, /*m_Climb*/ true, m_Roll, m_Interact);
         m_Jump = false;
         m_JumpRelease = false;
         m_Roll = false;
