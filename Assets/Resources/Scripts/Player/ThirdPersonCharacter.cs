@@ -47,6 +47,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     const float k_Half = 0.5f;
     float m_TurnAmount;
     float m_ForwardAmount;
+    float m_ClimbLeg = 1f;
     Vector3 m_GroundNormal;
     [SerializeField]
     Vector3 m_WallNormal;
@@ -159,7 +160,7 @@ public class ThirdPersonCharacter : MonoBehaviour
 
                             transform.position = Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
                             transform.LookAt(m_ClimbInfo.grabPosition);
-                            transform.Translate(move * Time.deltaTime, Space.Self);
+                            //transform.Translate(move * Time.deltaTime, Space.Self);
 
                             m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
                             m_Joint.connectedBody = null;
@@ -178,6 +179,8 @@ public class ThirdPersonCharacter : MonoBehaviour
                     }
                 }
 
+                UpdateAnimator(move);
+
                 return;
             }
             else
@@ -188,11 +191,11 @@ public class ThirdPersonCharacter : MonoBehaviour
         else
         {
             GameController.instance.bossController.SetPlayerClimbing(false);
+            m_IsClimbing = false;
         }
 
         m_Rigidbody.useGravity = true;
         m_IsPreparingJump = false;
-        m_IsClimbing = false;
 
         CheckGroundStatus();
 
@@ -307,10 +310,21 @@ public class ThirdPersonCharacter : MonoBehaviour
     void UpdateAnimator(Vector3 move)
     {
         // update the animator parameters
-        m_Animator.SetFloat("Forward", m_ForwardAmount, 0.1f, Time.deltaTime);
-        m_Animator.SetFloat("Turn", m_TurnAmount, 0.1f, Time.deltaTime);
+        if (!m_IsClimbing)
+        {
+            m_Animator.SetFloat("Forward", m_ForwardAmount, 0f, Time.deltaTime);
+            m_Animator.SetFloat("Turn", m_TurnAmount, 0f, Time.deltaTime);
+        }
+        else
+        {
+            m_Animator.SetFloat("Forward", move.y, 0.1f, Time.deltaTime);
+            m_Animator.SetFloat("Turn", move.x, 0.1f, Time.deltaTime);
+        }
         m_Animator.SetBool("Crouch", m_IsCrouching);
         m_Animator.SetBool("OnGround", m_IsGrounded);
+        m_Animator.SetBool("Climbing", m_CanClimb);
+        m_Animator.SetFloat("ClimbLeg", m_ClimbLeg);
+
         if (!m_IsGrounded)
         {
             m_Animator.SetFloat("Jump", m_Rigidbody.velocity.y);
@@ -404,7 +418,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
         else if (m_IsClimbing)
         {
-            m_Rigidbody.velocity = Vector3.zero;
+            m_Rigidbody.velocity = (m_Animator.deltaPosition * 2f) / Time.deltaTime;
         }
     }
 
@@ -450,6 +464,15 @@ public class ThirdPersonCharacter : MonoBehaviour
             m_Animator.applyRootMotion = false;
             //this.transform.parent = null;
         }
+    }
+
+
+    public void SwitchClimbLeg()
+    {
+        if (m_ClimbLeg < 0)
+            m_ClimbLeg = 1;
+        else
+            m_ClimbLeg = -1;
     }
 }
 
