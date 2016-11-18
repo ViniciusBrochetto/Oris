@@ -77,12 +77,6 @@ public class ThirdPersonCharacter : MonoBehaviour
 
         m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         m_OrigGroundCheckDistance = m_GroundCheckDistance;
-
-    }
-
-    void LateUpdate()
-    {
-        transform.localScale = Vector3.one;
     }
 
     public void Move(Vector3 move, bool crouch, bool jump)
@@ -125,10 +119,8 @@ public class ThirdPersonCharacter : MonoBehaviour
 
             if (m_CanClimb)
             {
-                m_Joint.transform.parent = m_ClimbInfo.parentTransform;
-
-
                 m_IsClimbing = true;
+
                 if (m_IsPreparingJump)
                 {
                     if (jumpRelease)
@@ -147,34 +139,39 @@ public class ThirdPersonCharacter : MonoBehaviour
                         return;
                     }
 
-                    m_ClimbInfo = m_ClimbController.Climb(world_Move * Time.deltaTime * 4f);
+                    m_ClimbInfo = m_ClimbController.Climb(world_Move.normalized * Time.deltaTime * 4f);
                     m_CanClimbNextFrame = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
 
                     if (!GameController.instance.bossController.isShaking)
                     {
                         if (m_CanClimbNextFrame)
                         {
+                            m_Animator.enabled = true;
                             m_Rigidbody.useGravity = false;
 
                             transform.parent = m_ClimbInfo.parentTransform;
+                            m_Joint.transform.parent = m_ClimbInfo.parentTransform;
 
                             transform.position = Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
                             transform.LookAt(m_ClimbInfo.grabPosition);
-                            //transform.Translate(move * Time.deltaTime, Space.Self);
 
                             m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
                             m_Joint.connectedBody = null;
+                            m_JointRB.useGravity = false;
+                            m_JointRB.isKinematic = true;
                             m_JointRB.constraints = RigidbodyConstraints.FreezeAll;
-
                         }
                     }
                     else
                     {
+                        m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
                         if (m_Joint.connectedBody == null)
                         {
                             m_Joint.connectedBody = m_JointRB;
                             m_JointRB.constraints = RigidbodyConstraints.None;
                             m_JointRB.useGravity = true;
+                            m_JointRB.isKinematic = false;
+                            m_Animator.enabled = false;
                         }
                     }
                 }
@@ -183,19 +180,16 @@ public class ThirdPersonCharacter : MonoBehaviour
 
                 return;
             }
-            else
-            {
-                m_JointRB.constraints = RigidbodyConstraints.FreezeAll;
-            }
-        }
-        else
-        {
-            GameController.instance.bossController.SetPlayerClimbing(false);
-            m_IsClimbing = false;
         }
 
+        GameController.instance.bossController.SetPlayerClimbing(false);
+        m_IsClimbing = false;
         m_Rigidbody.useGravity = true;
         m_IsPreparingJump = false;
+        m_Animator.enabled = true;
+        m_JointRB.constraints = RigidbodyConstraints.FreezeAll;
+        m_JointRB.useGravity = false;
+        m_JointRB.isKinematic = true;
 
         CheckGroundStatus();
 
@@ -312,17 +306,25 @@ public class ThirdPersonCharacter : MonoBehaviour
         // update the animator parameters
         if (!m_IsClimbing)
         {
-            m_Animator.SetFloat("Forward", m_ForwardAmount, 0f, Time.deltaTime);
-            m_Animator.SetFloat("Turn", m_TurnAmount, 0f, Time.deltaTime);
+            m_Animator.SetFloat("Forward", m_ForwardAmount, 0.1f, Time.deltaTime);
+            m_Animator.SetFloat("Turn", m_TurnAmount, 0.1f, Time.deltaTime);
         }
         else
         {
-            m_Animator.SetFloat("Forward", move.y, 0.1f, Time.deltaTime);
-            m_Animator.SetFloat("Turn", move.x, 0.1f, Time.deltaTime);
+            if (GameController.instance.bossController.isShaking || !m_CanClimbNextFrame || m_IsPreparingJump)
+            {
+                m_Animator.SetFloat("Forward", 0f, 0.1f, Time.deltaTime);
+                m_Animator.SetFloat("Turn", 0f, 0.1f, Time.deltaTime);
+            }
+            else
+            {
+                m_Animator.SetFloat("Forward", move.y, 0f, Time.deltaTime);
+                m_Animator.SetFloat("Turn", move.x, 0f, Time.deltaTime);
+            }
         }
         m_Animator.SetBool("Crouch", m_IsCrouching);
         m_Animator.SetBool("OnGround", m_IsGrounded);
-        m_Animator.SetBool("Climbing", m_CanClimb);
+        m_Animator.SetBool("Climbing", m_IsClimbing);
         m_Animator.SetFloat("ClimbLeg", m_ClimbLeg);
 
         if (!m_IsGrounded)
@@ -344,7 +346,7 @@ public class ThirdPersonCharacter : MonoBehaviour
 
         // the anim speed multiplier allows the overall speed of walking/running to be tweaked in the inspector,
         // which affects the movement speed because of the root motion.
-        if (m_IsGrounded && move.magnitude > 0)
+        if ((m_IsGrounded || m_IsClimbing) && move.magnitude > 0)
         {
             m_Animator.speed = m_AnimSpeedMultiplier;
         }
@@ -410,7 +412,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         // this allows us to modify the positional speed before it's applied.
         if (!m_IsClimbing && m_IsGrounded && Time.deltaTime > 0)
         {
-            Vector3 v = (m_Animator.deltaPosition * m_MoveSpeedMultiplier) / Time.deltaTime;
+            Vector3 v = (m_Animator.deltaPosition) / Time.deltaTime;
 
             // we preserve the existing y part of the current velocity.
             v.y = m_Rigidbody.velocity.y;
@@ -418,7 +420,10 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
         else if (m_IsClimbing)
         {
-            m_Rigidbody.velocity = (m_Animator.deltaPosition * 2f) / Time.deltaTime;
+            if (m_CanClimbNextFrame)
+                m_Rigidbody.velocity = (m_Animator.deltaPosition * 2f) / Time.deltaTime;
+            else
+                m_Rigidbody.velocity = Vector3.zero;
         }
     }
 

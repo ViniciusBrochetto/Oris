@@ -102,7 +102,12 @@ public class FreeLookCam : PivotBasedCameraRig
         if (m_Target == null) return;
 
         if (!m_CameraLockedForBoss)
-            transform.position = Vector3.Lerp(transform.position, m_Target.position, deltaTime * m_MoveSpeed);
+        {
+            if (GameController.instance.bossController.isShaking)
+                transform.position = Vector3.Lerp(transform.position, m_Target.position, 1f);
+            else
+                transform.position = Vector3.Lerp(transform.position, m_Target.position, deltaTime * m_MoveSpeed);
+        }
         else
             FollowFixedPath();
     }
@@ -116,7 +121,10 @@ public class FreeLookCam : PivotBasedCameraRig
             tPos = tPos - m_CamFixedPath.camDirection.forward * 5f;
 
 
-        this.transform.position = Vector3.Lerp(transform.position, tPos, Time.deltaTime * 3f);
+        if (GameController.instance.bossController.isShaking)
+            this.transform.position = Vector3.Lerp(transform.position, tPos, 1f);
+        else
+            this.transform.position = Vector3.Lerp(transform.position, tPos, Time.deltaTime * 3f);
     }
 
     private void HandleRotationMovement()
