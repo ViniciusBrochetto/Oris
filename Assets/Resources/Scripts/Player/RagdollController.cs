@@ -32,7 +32,12 @@ public class RagdollController : MonoBehaviour
 
     public bool isRagdollActive = false;
 
-    public void SetRagdollActive(bool active)
+    public void Start()
+    {
+        SetFullRagdollActive(false);
+    }
+
+    public void SetFullRagdollActive(bool active)
     {
         isRagdollActive = active;
 
@@ -85,5 +90,40 @@ public class RagdollController : MonoBehaviour
         m_RLowerArm.GetComponent<Rigidbody>().useGravity = active;
         m_RLowerArm.GetComponent<Rigidbody>().isKinematic = !active;
         m_RLowerArm.GetComponent<Collider>().enabled = active;
+    }
+
+    public void SetRagdollActive(bool active)
+    {
+        isRagdollActive = active;
+
+        if (m_Animator)
+        {
+            m_Animator.enabled = !active;
+        }
+
+        m_Hip.GetComponent<Rigidbody>().useGravity = active;
+        m_Hip.GetComponent<Rigidbody>().isKinematic = !active;
+        m_Hip.GetComponent<Collider>().enabled = active;
+
+
+        m_Spine.GetComponent<Rigidbody>().useGravity = active;
+        m_Spine.GetComponent<Rigidbody>().isKinematic = !active;
+        m_Spine.GetComponent<Collider>().enabled = active;
+
+        m_LUpperLeg.GetComponent<Rigidbody>().useGravity = active;
+        m_LUpperLeg.GetComponent<Rigidbody>().isKinematic = !active;
+        m_LUpperLeg.GetComponent<Collider>().enabled = active;
+
+        m_LLowerLeg.GetComponent<Rigidbody>().useGravity = active;
+        m_LLowerLeg.GetComponent<Rigidbody>().isKinematic = !active;
+        m_LLowerLeg.GetComponent<Collider>().enabled = active;
+
+        m_RUpperLeg.GetComponent<Rigidbody>().useGravity = active;
+        m_RUpperLeg.GetComponent<Rigidbody>().isKinematic = !active;
+        m_RUpperLeg.GetComponent<Collider>().enabled = active;
+
+        m_RLowerLeg.GetComponent<Rigidbody>().useGravity = active;
+        m_RLowerLeg.GetComponent<Rigidbody>().isKinematic = !active;
+        m_RLowerLeg.GetComponent<Collider>().enabled = active;
     }
 }

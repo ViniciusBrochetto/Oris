@@ -160,6 +160,7 @@ public class ThirdPersonCharacter : MonoBehaviour
                             m_JointRB.useGravity = false;
                             m_JointRB.isKinematic = true;
                             m_JointRB.constraints = RigidbodyConstraints.FreezeAll;
+                            m_RagdollController.SetRagdollActive(false);
                         }
                     }
                     else
@@ -169,9 +170,10 @@ public class ThirdPersonCharacter : MonoBehaviour
                         {
                             m_Joint.connectedBody = m_JointRB;
                             m_JointRB.constraints = RigidbodyConstraints.None;
-                            m_JointRB.useGravity = true;
-                            m_JointRB.isKinematic = false;
+                            //m_JointRB.useGravity = true;
+                            //m_JointRB.isKinematic = false;
                             m_Animator.enabled = false;
+                            m_RagdollController.SetRagdollActive(true);
                         }
                     }
                 }
@@ -190,6 +192,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_JointRB.constraints = RigidbodyConstraints.FreezeAll;
         m_JointRB.useGravity = false;
         m_JointRB.isKinematic = true;
+        m_RagdollController.SetRagdollActive(false);
 
         CheckGroundStatus();
 
