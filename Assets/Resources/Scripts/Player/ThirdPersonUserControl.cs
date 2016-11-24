@@ -12,6 +12,7 @@ public class ThirdPersonUserControl : MonoBehaviour
     private bool m_Jump;                      // the world-relative desired move direction, calculated from the camForward and user input.
     private bool m_JumpRelease;
     private bool m_Climb;
+    private bool m_ClimbFixed;
     private bool m_Roll;
     private bool m_Interact;
 
@@ -51,6 +52,11 @@ public class ThirdPersonUserControl : MonoBehaviour
         {
             m_Interact = Input.GetKeyDown(KeyCode.E);
         }
+        
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.F))
+        {
+            m_ClimbFixed = !m_ClimbFixed;
+        }
 
         m_Climb = Input.GetKey(KeyCode.F);
 
@@ -76,7 +82,7 @@ public class ThirdPersonUserControl : MonoBehaviour
             m_Move *= 0.5f;
 
         // pass all parameters to the character control script
-        m_Character.Move(m_Move, crouch, m_Jump, m_JumpRelease, m_Climb /*true*/, m_Roll, m_Interact);
+        m_Character.Move(m_Move, crouch, m_Jump, m_JumpRelease, m_Climb || m_ClimbFixed, m_Roll, m_Interact);
         m_Jump = false;
         m_JumpRelease = false;
         m_Roll = false;
