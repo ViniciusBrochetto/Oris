@@ -15,7 +15,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     [SerializeField]
     float m_JumpPower = 12f;
     [SerializeField]
-    float m_RollPower = 12f;
+    float m_ExtraRollPower = 12f;
     [Range(1f, 4f)]
     [SerializeField]
     float m_GravityMultiplier = 2f;
@@ -79,6 +79,11 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_OrigGroundCheckDistance = m_GroundCheckDistance;
     }
 
+    void Update()
+    {
+        transform.localScale = transform.localScale;
+    }
+
     public void Move(Vector3 move, bool crouch, bool jump)
     {
         Move(move, crouch, jump, false, false, false, false);
@@ -88,7 +93,10 @@ public class ThirdPersonCharacter : MonoBehaviour
     {
         if (m_IsStruggling)
         {
-            return;
+            if (!GameController.instance.bossController.isShaking)
+                m_IsStruggling = false;
+            else
+                return;
         }
 
         if (move.magnitude > 1f)
@@ -96,14 +104,6 @@ public class ThirdPersonCharacter : MonoBehaviour
 
         Vector3 world_Move = move;
         move = transform.InverseTransformDirection(move);
-
-        if (interact)
-        {
-            if (GameController.instance.interactable != null)
-            {
-                GameController.instance.interactable.Interact();
-            }
-        }
 
         if (!temp_HangWait && climb)
         {
@@ -158,22 +158,19 @@ public class ThirdPersonCharacter : MonoBehaviour
                             m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
                             m_Joint.connectedBody = null;
                             m_JointRB.useGravity = false;
-                            m_JointRB.isKinematic = true;
-                            m_JointRB.constraints = RigidbodyConstraints.FreezeAll;
-                            m_RagdollController.SetRagdollActive(false);
+                            m_JointRB.constraints = RigidbodyConstraints.FreezeRotation;
                         }
                     }
                     else
                     {
+                        m_IsStruggling = true;
+
                         m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
                         if (m_Joint.connectedBody == null)
                         {
                             m_Joint.connectedBody = m_JointRB;
                             m_JointRB.constraints = RigidbodyConstraints.None;
-                            //m_JointRB.useGravity = true;
-                            //m_JointRB.isKinematic = false;
-                            m_Animator.enabled = false;
-                            m_RagdollController.SetRagdollActive(true);
+                            m_JointRB.useGravity = true;
                         }
                     }
                 }
@@ -188,11 +185,8 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_IsClimbing = false;
         m_Rigidbody.useGravity = true;
         m_IsPreparingJump = false;
-        m_Animator.enabled = true;
-        m_JointRB.constraints = RigidbodyConstraints.FreezeAll;
-        m_JointRB.useGravity = false;
-        m_JointRB.isKinematic = true;
-        m_RagdollController.SetRagdollActive(false);
+        m_JointRB.constraints = RigidbodyConstraints.FreezeRotation;
+        m_JointRB.useGravity = true;
 
         CheckGroundStatus();
 
@@ -200,35 +194,42 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_TurnAmount = Mathf.Atan2(move.x, move.z);
         m_ForwardAmount = move.z;
 
-        transform.eulerAngles = Vector3.Scale(transform.rotation.eulerAngles, Vector3.up);
+        if (interact)
+        {
+            if (GameController.instance.interactable != null)
+            {
+                GameController.instance.interactable.Interact();
+            }
+        }
 
+        transform.eulerAngles = Vector3.Scale(transform.rotation.eulerAngles, Vector3.up);
         ApplyExtraTurnRotation();
 
         // control and velocity handling is different when grounded and airborne:
         if (m_IsGrounded)
         {
-            //if (roll)
-            //{
-            //    StartCoroutine(HandleRoll());
-            //}
-            //else
-            //{
-            //if (m_IsRolling)
-            //{
-            //    transform.Translate(move * m_RollPower * Time.deltaTime);
-            //}
-            //else
-            //{
-            HandleGroundedMovement(crouch, jump);
-            //}
-            //}
+            if (roll)
+            {
+                StartCoroutine(HandleRoll());
+            }
+            else
+            {
+                if (m_IsRolling)
+                {
+                    transform.Translate(move * m_ExtraRollPower * Time.deltaTime);
+                }
+                else
+                {
+                    HandleGroundedMovement(crouch, jump);
+                }
+            }
         }
         else
         {
             HandleAirborneMovement(move);
         }
 
-        ScaleCapsuleForCrouch(crouch || m_IsRolling);
+        ScaleCapsuleForCrouch(crouch);
         PreventStandingInLowHeadroom();
 
         // send input and other state parameters to the animator
@@ -261,7 +262,7 @@ public class ThirdPersonCharacter : MonoBehaviour
 
         m_IsGrounded = false;
         m_Animator.applyRootMotion = false;
-        m_GroundCheckDistance = 0.01f;
+        m_GroundCheckDistance = 0.05f;
         m_Rigidbody.useGravity = true;
         m_IsClimbing = false;
     }
@@ -329,6 +330,8 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_Animator.SetBool("OnGround", m_IsGrounded);
         m_Animator.SetBool("Climbing", m_IsClimbing);
         m_Animator.SetFloat("ClimbLeg", m_ClimbLeg);
+        m_Animator.SetBool("Roll", m_IsRolling);
+        m_Animator.SetBool("Struggling", m_IsStruggling);
 
         if (!m_IsGrounded)
         {
@@ -368,7 +371,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_Rigidbody.AddForce(extraGravityForce);
 
         transform.Translate(move * Time.deltaTime);
-        m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
+        m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.05f;
     }
 
     void HandleGroundedMovement(bool crouch, bool jump)
@@ -393,7 +396,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     {
         m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
         m_IsGrounded = false;
-        m_GroundCheckDistance = 0.01f;
+        m_GroundCheckDistance = 0.05f;
     }
 
     void ApplyExtraTurnRotation()
@@ -449,7 +452,7 @@ public class ThirdPersonCharacter : MonoBehaviour
             {
                 if (hitInfo.transform.GetComponent<shitscript>())
                 {
-                    this.transform.parent = hitInfo.transform.GetComponent<shitscript>().parentBone.transform;
+                    this.transform.parent = hitInfo.transform.GetComponent<shitscript>().m_ParentBone.transform;
                     m_IsGroundedOnBoss = true;
                 }
                 else

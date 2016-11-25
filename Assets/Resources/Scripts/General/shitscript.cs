@@ -3,30 +3,30 @@ using System.Collections;
 
 public class shitscript : MonoBehaviour
 {
-    SkinnedMeshRenderer rend;
-    MeshCollider rend1;
-    Mesh colliderMesh;
+    SkinnedMeshRenderer m_SkinnedMesh;
+    MeshCollider m_MeshCollider;
+    Mesh m_MeshToMakeCollisionFrom;
 
-    public Transform parentBone;
+    public Transform m_ParentBone;
+    public PhysicMaterial m_PhysMat;
 
     // Use this for initialization
     void Start()
     {
-        rend = GetComponent<SkinnedMeshRenderer>();
-        rend1 = GetComponent<MeshCollider>();
-
+        m_SkinnedMesh = GetComponent<SkinnedMeshRenderer>();
+        m_MeshCollider = GetComponent<MeshCollider>();
     }
 
     // Update is called once per frame
     void LateUpdate()
     {
-        Destroy(colliderMesh);
+        Destroy(m_MeshToMakeCollisionFrom);
 
-        colliderMesh = new Mesh();
-        rend.BakeMesh(colliderMesh);
+        m_MeshToMakeCollisionFrom = new Mesh();
+        m_SkinnedMesh.BakeMesh(m_MeshToMakeCollisionFrom);
 
-        rend1.sharedMesh = null;
-        rend1.sharedMesh = colliderMesh;
-
+        m_MeshCollider.sharedMesh = null;
+        m_MeshCollider.sharedMesh = m_MeshToMakeCollisionFrom;
+        m_MeshCollider.sharedMaterial = m_PhysMat;
     }
 }

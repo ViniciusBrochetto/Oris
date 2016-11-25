@@ -81,7 +81,7 @@ public class ClimbController : MonoBehaviour
             ci.grabPosition = hit.point;
 
             if (hit.transform.GetComponent<shitscript>())
-                ci.parentTransform = hit.transform.GetComponent<shitscript>().parentBone;
+                ci.parentTransform = hit.transform.GetComponent<shitscript>().m_ParentBone;
             else
                 ci.parentTransform = hit.transform;
 
