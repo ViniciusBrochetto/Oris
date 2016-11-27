@@ -812,7 +812,15 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.76865685
+      - time: 0.7164904
+        functionName: InstantiateParticle
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.7173748
         functionName: StartCameraShake
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,

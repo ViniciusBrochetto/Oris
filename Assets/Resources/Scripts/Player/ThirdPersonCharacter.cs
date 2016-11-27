@@ -159,6 +159,7 @@ public class ThirdPersonCharacter : MonoBehaviour
                             m_Joint.connectedBody = null;
                             m_JointRB.useGravity = false;
                             m_JointRB.constraints = RigidbodyConstraints.FreezeRotation;
+                            m_Capsule.enabled = false;
                         }
                     }
                     else
@@ -187,6 +188,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_IsPreparingJump = false;
         m_JointRB.constraints = RigidbodyConstraints.FreezeRotation;
         m_JointRB.useGravity = true;
+        m_Capsule.enabled = true;
 
         CheckGroundStatus();
 

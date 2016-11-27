@@ -22,6 +22,12 @@ public class BossController : MonoBehaviour
     public bool canAttack = false;
     public bool canShake = false;
 
+    [SerializeField]
+    private Transform[] m_Particles;
+
+    [SerializeField]
+    private Transform[] m_ParticlePositions;
+
     void Awake()
     {
         m_Anim = GetComponent<Animator>();
@@ -172,6 +178,11 @@ public class BossController : MonoBehaviour
     public void StartCameraShake()
     {
         GameController.instance.cameraShakeController.RequestShake(3f, 0.25f, true);
+    }
+
+    public void InstantiateParticle(int particle_Num)
+    {
+       Instantiate(m_Particles[particle_Num % 10], m_ParticlePositions[particle_Num / 10].position, Quaternion.identity);
     }
 
     public enum BossPhases
