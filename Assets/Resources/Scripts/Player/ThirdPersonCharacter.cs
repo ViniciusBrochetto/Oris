@@ -317,15 +317,20 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
         else
         {
-            if (GameController.instance.bossController.isShaking || !m_CanClimbNextFrame || m_IsPreparingJump)
+            if (!m_CanClimbNextFrame)
+            {
+                m_Animator.SetFloat("Forward", 0f);
+                m_Animator.SetFloat("Turn", 0f);
+            }
+            else if (GameController.instance.bossController.isShaking || m_IsPreparingJump)
             {
                 m_Animator.SetFloat("Forward", 0f, 0.1f, Time.deltaTime);
                 m_Animator.SetFloat("Turn", 0f, 0.1f, Time.deltaTime);
             }
             else
             {
-                m_Animator.SetFloat("Forward", move.y, 0f, Time.deltaTime);
-                m_Animator.SetFloat("Turn", move.x, 0f, Time.deltaTime);
+                m_Animator.SetFloat("Forward", move.y, 0.1f, Time.deltaTime);
+                m_Animator.SetFloat("Turn", move.x, 0.1f, Time.deltaTime);
             }
         }
         m_Animator.SetBool("Crouch", m_IsCrouching);
