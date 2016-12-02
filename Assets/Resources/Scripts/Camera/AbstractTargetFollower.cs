@@ -41,7 +41,7 @@ public abstract class AbstractTargetFollower : MonoBehaviour
         {
             FindAndTargetPlayer();
         }
-        if (m_UpdateType == UpdateType.FixedUpdate)
+        if (m_UpdateType == UpdateType.FixedUpdate && GameController.instance.isCameraControllable)
         {
             FollowTarget(Time.fixedDeltaTime);
         }
@@ -56,7 +56,7 @@ public abstract class AbstractTargetFollower : MonoBehaviour
         {
             FindAndTargetPlayer();
         }
-        if (m_UpdateType == UpdateType.LateUpdate)
+        if (m_UpdateType == UpdateType.LateUpdate && GameController.instance.isCameraControllable)
         {
             FollowTarget(Time.deltaTime);
         }
@@ -71,7 +71,7 @@ public abstract class AbstractTargetFollower : MonoBehaviour
         {
             FindAndTargetPlayer();
         }
-        if (m_UpdateType == UpdateType.ManualUpdate)
+        if (m_UpdateType == UpdateType.ManualUpdate && GameController.instance.isCameraControllable)
         {
             FollowTarget(Time.deltaTime);
         }

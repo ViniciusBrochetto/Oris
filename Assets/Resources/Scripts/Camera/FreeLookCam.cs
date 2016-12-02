@@ -1,4 +1,6 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityStandardAssets.Cameras;
 using UnityStandardAssets.CrossPlatformInput;
 
@@ -28,6 +30,10 @@ public class FreeLookCam : PivotBasedCameraRig
     [SerializeField]
     public bool m_CameraLockedForBoss = false;
 
+    [SerializeField]
+    public Image m_FadeImage;
+
+
     private float m_LookAngle;                    // The rig's y axis rotation.
     private float m_TiltAngle;                    // The pivot's x axis rotation.
     private const float k_LookDistance = 50f;    // How far in front of the pivot the character's look target is.
@@ -47,47 +53,52 @@ public class FreeLookCam : PivotBasedCameraRig
         m_PivotTargetRot = m_Pivot.transform.localRotation;
         m_TransformTargetRot = transform.localRotation;
         m_ProtectFromWall = GetComponent<ProtectCameraFromWallClip>();
+
+        m_FadeImage.enabled = true;
+        m_FadeImage.color = new Color(0f, 0f, 0f, 1f);
     }
 
     protected void Update()
     {
-        if (Input.GetKey(KeyCode.R))
+        if (GameController.instance.isCameraControllable)
         {
-            Quaternion targetRot = Quaternion.LookRotation(m_SecondaryTarget.position - transform.position, Vector3.up);
-            targetRot = Quaternion.Slerp(m_Pivot.rotation, targetRot, 3f * Time.deltaTime);
-            targetRot.eulerAngles = Vector3.Scale(targetRot.eulerAngles, new Vector3(1f, 1f, 0f));
-            m_Pivot.rotation = targetRot;
-
-            m_TransformTargetRot = targetRot;
-        }
-        else
-        {
-            if (m_CamFixedPath != null)
+            if (Input.GetKey(KeyCode.R))
             {
-                if (m_Target.GetComponent<ThirdPersonCharacter>())
+                LookAt(m_SecondaryTarget.position);
+            }
+            else
+            {
+                if (m_CamFixedPath != null)
                 {
-                    if (m_Target.GetComponent<ThirdPersonCharacter>().m_IsClimbing || !m_CamFixedPath.climbOnly)
-                        m_CameraLockedForBoss = true;
-                    else
-                        m_CameraLockedForBoss = false;
+                    if (m_Target.GetComponent<ThirdPersonCharacter>())
+                    {
+                        if (m_Target.GetComponent<ThirdPersonCharacter>().m_IsClimbing || !m_CamFixedPath.climbOnly)
+                            m_CameraLockedForBoss = true;
+                        else
+                            m_CameraLockedForBoss = false;
+                    }
                 }
+
+                HandleRotationMovement();
+                m_ProtectFromWall.enabled = !m_CameraLockedForBoss;
+
             }
 
-            HandleRotationMovement();
-            m_ProtectFromWall.enabled = !m_CameraLockedForBoss;
+            if (m_LockCursor && Input.GetMouseButtonUp(0))
+            {
+                Cursor.lockState = m_LockCursor ? CursorLockMode.Locked : CursorLockMode.None;
+                Cursor.visible = !m_LockCursor;
+            }
 
+            if (GameController.instance.playerController.m_IsClimbing || GameController.instance.playerController.m_IsGroundedOnBoss)
+                m_UpdateType = UpdateType.LateUpdate;
+            else
+                m_UpdateType = UpdateType.FixedUpdate;
         }
-
-        if (m_LockCursor && Input.GetMouseButtonUp(0))
-        {
-            Cursor.lockState = m_LockCursor ? CursorLockMode.Locked : CursorLockMode.None;
-            Cursor.visible = !m_LockCursor;
-        }
-
-        if (GameController.instance.playerController.m_IsClimbing || GameController.instance.playerController.m_IsGroundedOnBoss)
-            m_UpdateType = UpdateType.LateUpdate;
         else
-            m_UpdateType = UpdateType.FixedUpdate;
+        {
+            m_UpdateType = UpdateType.LateUpdate;
+        }
     }
 
     private void OnDisable()
@@ -95,7 +106,6 @@ public class FreeLookCam : PivotBasedCameraRig
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
-
 
     protected override void FollowTarget(float deltaTime)
     {
@@ -160,5 +170,72 @@ public class FreeLookCam : PivotBasedCameraRig
 
         if (fixPath == null)
             m_CameraLockedForBoss = false;
+    }
+
+    public void RequestFadeToBlack()
+    {
+        StartCoroutine(FadeToBlack());
+    }
+
+    public void RequestFadeFromBlack()
+    {
+        StartCoroutine(FadeFromBlack());
+    }
+
+    public IEnumerator FadeToBlack()
+    {
+        Color blackA0 = new Color(0f, 0f, 0f, 0f);
+        Color blackA1 = new Color(0f, 0f, 0f, 1f);
+
+        float time = 0f;
+        float timeMax = 1f;
+
+        m_FadeImage.enabled = true;
+
+        while (time <= timeMax)
+        {
+            m_FadeImage.color = Color.Lerp(blackA0, blackA1, time / timeMax);
+            time += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        m_FadeImage.color = blackA1;
+
+        yield return 0;
+    }
+
+    public IEnumerator FadeFromBlack()
+    {
+        Color blackA0 = new Color(0f, 0f, 0f, 0f);
+        Color blackA1 = new Color(0f, 0f, 0f, 1f);
+
+        float time = 0f;
+        float timeMax = 1f;
+
+        time = 0f;
+        while (time <= timeMax)
+        {
+            m_FadeImage.color = Color.Lerp(blackA1, blackA0, time / timeMax);
+            time += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+        m_FadeImage.color = blackA0;
+
+        m_FadeImage.enabled = false;
+
+        yield return 0;
+    }
+
+    public void LookAt(Vector3 lookPosition)
+    {
+        Quaternion targetRot = Quaternion.LookRotation(lookPosition - transform.position, Vector3.up);
+        targetRot.eulerAngles = Vector3.Scale(targetRot.eulerAngles, new Vector3(1f, 1f, 0f));
+        SetLookRotation(targetRot);
+    }
+
+    public void SetLookRotation(Quaternion tRotation)
+    {
+        m_Pivot.rotation = tRotation;
+        m_TransformTargetRot = tRotation;
     }
 }

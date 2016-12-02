@@ -1245,8 +1245,8 @@ ModelImporter:
       loopTime: 1
       loopBlend: 1
       loopBlendOrientation: 1
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
       keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
@@ -3284,7 +3284,15 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.78827363
+        functionName: SetRolling
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: ce7a80d520cacc042b5fe14f373d8173,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask:
       - path: 
         weight: 1
@@ -3485,7 +3493,7 @@ ModelImporter:
   tangentSpace:
     normalSmoothAngle: 90
     normalImportMode: 0
-    tangentImportMode: 0
+    tangentImportMode: 2
   importAnimation: 1
   copyAvatar: 0
   humanDescription:

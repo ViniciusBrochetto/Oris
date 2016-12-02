@@ -8,6 +8,12 @@ public class PrototypeControllers : MonoBehaviour
 
     void LateUpdate()
     {
+        if (Input.GetKey(KeyCode.Escape) && GameController.instance.isPausable)
+        {
+            GameController.instance.PauseGame();
+        }
+
+
         if (Input.GetKeyDown(KeyCode.F1))
         {
             ragdolls = !ragdolls;
@@ -20,7 +26,11 @@ public class PrototypeControllers : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.F3))
         {
-            GameObject.FindObjectOfType<CameraShake>().RequestShake();
+            GameController.instance.cameraShakeController.RequestShake();
+        }
+        if (Input.GetKeyDown(KeyCode.F4))
+        {
+            StartCoroutine(GameController.instance.bossController.BossDamageScene(BossController.BossPhases.f2));
         }
     }
 }

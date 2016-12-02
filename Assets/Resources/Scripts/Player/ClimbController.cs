@@ -10,7 +10,7 @@ public class ClimbController : MonoBehaviour
 
     [SerializeField]
     [Range(0.01f, 2f)]
-    private float testRadius = 0.2f;
+    private float testRadius = 0.5f;
 
     [SerializeField]
     private LayerMask grabMask;
@@ -51,7 +51,8 @@ public class ClimbController : MonoBehaviour
         {
             ray = new Ray(limitPositions[i].position + move, limitPositions[i].forward);
 
-            if (!Physics.Raycast(ray, out hit, maxDistance, grabMask.value))
+            if (!Physics.SphereCast(ray, testRadius, out hit, maxDistance, grabMask.value))
+            //if (!Physics.Raycast(ray, out hit, maxDistance, grabMask.value))
             {
                 if (i < 2)
                     ci.feetConnected = false;
@@ -75,6 +76,8 @@ public class ClimbController : MonoBehaviour
         avgPos /= 4f;
 
         ray = new Ray(transform.position, transform.forward);
+
+        //if (Physics.SphereCast(ray, testRadius, out hit, maxDistance, grabMask.value))
         if (Physics.Raycast(ray, out hit, maxDistance, grabMask.value))
         {
             //ci.avgNormal = hit.normal;

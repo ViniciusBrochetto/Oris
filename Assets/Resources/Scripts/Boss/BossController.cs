@@ -8,7 +8,7 @@ public class BossController : MonoBehaviour
     public BossPhases m_BossPhase = BossPhases.f0;
 
     private bool m_PhaseUpdated;
-    private Animator m_Anim;
+    public Animator m_Anim;
 
     [SerializeField]
     private float m_ShakeAvgTime = 10f;
@@ -27,6 +27,9 @@ public class BossController : MonoBehaviour
 
     [SerializeField]
     private Transform[] m_ParticlePositions;
+
+    [SerializeField]
+    private Transform[] m_CameraPositions;
 
     void Awake()
     {
@@ -75,7 +78,6 @@ public class BossController : MonoBehaviour
                     StartCoroutine(AttackCooldown());
                 }
                 break;
-                break;
             case BossPhases.f5:
                 break;
             case BossPhases.f6:
@@ -119,7 +121,7 @@ public class BossController : MonoBehaviour
             case BossPhases.f1:
                 break;
             case BossPhases.f2:
-                m_Anim.SetTrigger("start_f2");
+                StartCoroutine(BossDamageScene(BossPhases.f2));
                 isShaking = false;
                 isAttacking = false;
                 break;
@@ -182,7 +184,57 @@ public class BossController : MonoBehaviour
 
     public void InstantiateParticle(int particle_Num)
     {
-       Instantiate(m_Particles[particle_Num % 10], m_ParticlePositions[particle_Num / 10].position, Quaternion.identity);
+        Instantiate(m_Particles[particle_Num % 10], m_ParticlePositions[particle_Num / 10].position, Quaternion.identity);
+    }
+
+    public IEnumerator BossDamageScene(BossPhases phase)
+    {
+        GameController.instance.isPlayerControllable = false;
+        GameController.instance.isCameraControllable = false;
+        GameController.instance.isPausable = false;
+
+        yield return StartCoroutine(GameController.instance.cameraController.FadeToBlack());
+
+        switch (phase)
+        {
+            case BossPhases.f0:
+                break;
+            case BossPhases.f1:
+                break;
+            case BossPhases.f2:
+
+                GameController.instance.cameraController.transform.position = m_CameraPositions[0].position;
+                GameController.instance.cameraController.SetLookRotation(m_CameraPositions[0].rotation);
+                m_Anim.SetTrigger("start_f2");
+
+                yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
+                yield return new WaitForSeconds(10f);
+
+                break;
+            case BossPhases.f3:
+                break;
+            case BossPhases.f4:
+                break;
+            case BossPhases.f5:
+                break;
+            case BossPhases.f6:
+                break;
+            default:
+                break;
+        }
+
+        yield return StartCoroutine(GameController.instance.cameraController.FadeToBlack());
+
+        GameController.instance.isPlayerControllable = true;
+        GameController.instance.isCameraControllable = true;
+        GameController.instance.isPausable = true;
+        yield return new WaitForSeconds(1.5f);
+
+        yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
+
+
+
+        yield return 0;
     }
 
     public enum BossPhases

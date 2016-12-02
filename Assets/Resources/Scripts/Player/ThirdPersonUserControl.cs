@@ -36,57 +36,60 @@ public class ThirdPersonUserControl : MonoBehaviour
 
     private void Update()
     {
-        if (!m_Jump)
+        if (GameController.instance.isPlayerControllable)
         {
-            m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
-        }
-        if (!m_JumpRelease)
-        {
-            m_JumpRelease = CrossPlatformInputManager.GetButtonUp("Jump");
-        }
-        if (!m_Roll)
-        {
-            m_Roll = Input.GetKeyDown(KeyCode.V);
-        }
-        if (!m_Interact)
-        {
-            m_Interact = Input.GetKeyDown(KeyCode.E);
-        }
-        
-        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.F))
-        {
-            m_ClimbFixed = !m_ClimbFixed;
-        }
+            if (!m_Jump)
+            {
+                m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
+            }
+            if (!m_JumpRelease)
+            {
+                m_JumpRelease = CrossPlatformInputManager.GetButtonUp("Jump");
+            }
+            if (!m_Roll)
+            {
+                m_Roll = Input.GetKeyDown(KeyCode.V);
+            }
+            if (!m_Interact)
+            {
+                m_Interact = Input.GetKeyDown(KeyCode.E);
+            }
 
-        m_Climb = Input.GetKey(KeyCode.F);
+            if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.F))
+            {
+                m_ClimbFixed = !m_ClimbFixed;
+            }
 
-        // read inputs
-        float h = CrossPlatformInputManager.GetAxis("Horizontal");
-        float v = CrossPlatformInputManager.GetAxis("Vertical");
-        bool crouch = Input.GetKey(KeyCode.C);
+            m_Climb = Input.GetKey(KeyCode.F);
 
-        if (m_Character.m_IsClimbing)
-        {
-            m_CamForward = Vector3.Scale(m_Cam.up, new Vector3(0, 1, 0)).normalized;
-            m_Move = v * m_CamForward + h * m_Character.transform.right;
+            // read inputs
+            float h = CrossPlatformInputManager.GetAxis("Horizontal");
+            float v = CrossPlatformInputManager.GetAxis("Vertical");
+            bool crouch = Input.GetKey(KeyCode.C);
+
+            if (m_Character.m_IsClimbing)
+            {
+                m_CamForward = Vector3.Scale(m_Cam.up, new Vector3(0, 1, 0)).normalized;
+                m_Move = v * m_CamForward + h * m_Character.transform.right;
+            }
+            else
+            {
+                // calculate camera relative direction to move:
+                m_CamForward = Vector3.Scale(m_Cam.forward, new Vector3(1, 0, 1)).normalized;
+                m_Move = v * m_CamForward + h * m_Cam.right;
+            }
+
+            // walk speed multiplier
+            if (Input.GetKey(KeyCode.LeftShift))
+                m_Move *= 0.5f;
+
+            // pass all parameters to the character control script
+            m_Character.Move(m_Move, crouch, m_Jump, m_JumpRelease, m_Climb || m_ClimbFixed, m_Roll, m_Interact);
+            m_Jump = false;
+            m_JumpRelease = false;
+            m_Roll = false;
+            m_Interact = false;
         }
-        else
-        {
-            // calculate camera relative direction to move:
-            m_CamForward = Vector3.Scale(m_Cam.forward, new Vector3(1, 0, 1)).normalized;
-            m_Move = v * m_CamForward + h * m_Cam.right;
-        }
-
-        // walk speed multiplier
-        if (Input.GetKey(KeyCode.LeftShift))
-            m_Move *= 0.5f;
-
-        // pass all parameters to the character control script
-        m_Character.Move(m_Move, crouch, m_Jump, m_JumpRelease, m_Climb || m_ClimbFixed, m_Roll, m_Interact);
-        m_Jump = false;
-        m_JumpRelease = false;
-        m_Roll = false;
-        m_Interact = false;
     }
 }
 

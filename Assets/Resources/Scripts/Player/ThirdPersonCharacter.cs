@@ -34,6 +34,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     public bool m_IsClimbing;
     bool m_IsGrounded;
     bool m_IsRolling;
+    bool m_CanRoll = true;
     bool m_IsCrouching;
     bool m_IsPreparingJump;
     bool m_isInteracting;
@@ -150,15 +151,19 @@ public class ThirdPersonCharacter : MonoBehaviour
                             m_Rigidbody.useGravity = false;
 
                             transform.parent = m_ClimbInfo.parentTransform;
-                            m_Joint.transform.parent = m_ClimbInfo.parentTransform;
 
                             transform.position = Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
                             transform.LookAt(m_ClimbInfo.grabPosition);
 
-                            m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
-                            m_Joint.connectedBody = null;
-                            m_JointRB.useGravity = false;
-                            m_JointRB.constraints = RigidbodyConstraints.FreezeRotation;
+                            if (m_Joint)
+                            {
+                                m_Joint.transform.parent = m_ClimbInfo.parentTransform;
+                                m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
+                                m_Joint.connectedBody = null;
+                                m_JointRB.useGravity = false;
+                                m_JointRB.constraints = RigidbodyConstraints.FreezeRotation;
+                            }
+
                             m_Capsule.enabled = false;
                         }
                     }
@@ -166,12 +171,15 @@ public class ThirdPersonCharacter : MonoBehaviour
                     {
                         m_IsStruggling = true;
 
-                        m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
-                        if (m_Joint.connectedBody == null)
+                        if (m_Joint)
                         {
-                            m_Joint.connectedBody = m_JointRB;
-                            m_JointRB.constraints = RigidbodyConstraints.None;
-                            m_JointRB.useGravity = true;
+                            m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
+                            if (m_Joint.connectedBody == null)
+                            {
+                                m_Joint.connectedBody = m_JointRB;
+                                m_JointRB.constraints = RigidbodyConstraints.None;
+                                m_JointRB.useGravity = true;
+                            }
                         }
                     }
                 }
@@ -186,9 +194,13 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_IsClimbing = false;
         m_Rigidbody.useGravity = true;
         m_IsPreparingJump = false;
-        m_JointRB.constraints = RigidbodyConstraints.FreezeRotation;
-        m_JointRB.useGravity = true;
         m_Capsule.enabled = true;
+
+        if (m_Joint)
+        {
+            m_JointRB.constraints = RigidbodyConstraints.FreezeRotation;
+            m_JointRB.useGravity = true;
+        }
 
         CheckGroundStatus();
 
@@ -210,9 +222,10 @@ public class ThirdPersonCharacter : MonoBehaviour
         // control and velocity handling is different when grounded and airborne:
         if (m_IsGrounded)
         {
-            if (roll)
+            if (roll && m_CanRoll)
             {
-                StartCoroutine(HandleRoll());
+                m_IsRolling = true;
+                m_CanRoll = false;
             }
             else
             {
@@ -390,13 +403,16 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
     }
 
-    IEnumerator HandleRoll()
+    public void SetRolling(int b)
     {
-        m_IsRolling = true;
+        m_IsRolling = b == 1;
+        StartCoroutine(RollCD());
+    }
 
-        yield return new WaitForSeconds(0.4f);
-
-        m_IsRolling = false;
+    IEnumerator RollCD()
+    {
+        yield return new WaitForSeconds(0.2f);
+        m_CanRoll = true;
     }
 
     void Jump()
@@ -477,6 +493,8 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
         else
         {
+            m_IsRolling = false;
+            m_CanRoll = true;
             m_IsGrounded = false;
             m_GroundNormal = Vector3.up;
             m_Animator.applyRootMotion = false;

@@ -4,6 +4,8 @@ using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
+    public static bool START_FROM_CHECKPOINT = true;
+
     public static GameController instance;
     public static GameControllerProperties gameControllerProperties;
 
@@ -11,7 +13,13 @@ public class GameController : MonoBehaviour
     public ThirdPersonCharacter playerController;
     public CameraShake cameraShakeController;
     public FreeLookCam cameraController;
+    public CheckpointController checkpointController;
     public IInteractable interactable;
+
+    public bool isCameraControllable = true;
+    public bool isPlayerControllable = true;
+    public bool isPausable = true;
+
 
     void Awake()
     {
@@ -23,6 +31,12 @@ public class GameController : MonoBehaviour
             playerController = FindObjectOfType<ThirdPersonCharacter>();
             cameraShakeController = FindObjectOfType<CameraShake>();
             cameraController = FindObjectOfType<FreeLookCam>();
+            checkpointController = FindObjectOfType<CheckpointController>();
+
+            CheckpointController.SetLastCheckpoint(1);
+
+            StartCoroutine(LoadGame());
+
         }
         else
         {
@@ -30,47 +44,79 @@ public class GameController : MonoBehaviour
         }
     }
 
-    #region PAUSE/RESUME/RETURN TO MENU/SAVE
+    #region PAUSE/RESUME/RETURN TO MENU/SAVE/LOAD
     public void PauseGame()
     {
-        gameControllerProperties.gameState = GameState.Paused;
+        isCameraControllable = false;
+        isPlayerControllable = false;
+        Time.timeScale = 0f;
     }
 
     public void ResumeGame()
     {
-        gameControllerProperties.gameState = GameState.Playing;
+        isCameraControllable = true;
+        isPlayerControllable = true;
+        Time.timeScale = 1f;
     }
 
     public void ReturnToMainMenu()
     {
-        SaveGame();
+        cameraController.RequestFadeToBlack();
+        SceneManager.LoadScene("MainMenu");
+        instance = null;
     }
 
-    public void SaveGame()
+    public IEnumerator LoadGame()
     {
+        yield return new WaitForSeconds(1f);
 
-    }
-    #endregion
+        isPlayerControllable = false;
+        isCameraControllable = false;
+        isPausable = false;
 
-    #region GAME_START/LOAD/OPTIONS/QUIT
-    public void StartGame(string levelName)
-    {
-        SceneManager.LoadScene(levelName);
+        if (START_FROM_CHECKPOINT)
+        {
+            int cp = CheckpointController.GetLastCheckpoint();
+            Transform t = checkpointController.GetCheckpointPosition();
+
+
+            switch (cp)
+            {
+                case 2:
+                    bossController.m_BossPhase = BossController.BossPhases.f2;
+                    bossController.m_Anim.Play("anm_boss_idle_f2");
+                    break;
+                case 3:
+                    bossController.m_BossPhase = BossController.BossPhases.f3;
+                    bossController.m_Anim.Play("anm_boss_idle_f3");
+                    break;
+                case 4:
+                    bossController.m_BossPhase = BossController.BossPhases.f4;
+                    bossController.m_Anim.Play("anm_boss_idle_f4");
+                    break;
+                default:
+                    break;
+            }
+
+            yield return new WaitForSeconds(1f);
+
+            playerController.transform.position = t.position;
+            playerController.transform.rotation = t.rotation;
+
+            cameraController.transform.position = t.position;
+            cameraController.transform.rotation = t.rotation;
+        }
+
+
+        cameraController.RequestFadeFromBlack();
+
+
+        isPlayerControllable = true;
+        isCameraControllable = true;
+        isPausable = true;
+
+        yield return 0;
     }
 
-    public void LoadGame()
-    {
-        //TODO Loading Game
-    }
-
-    public void ApplyOptions()
-    {
-        //TODO Apply Options to XML
-    }
-
-    public void Quit()
-    {
-        Application.Quit();
-    }
     #endregion
 }
