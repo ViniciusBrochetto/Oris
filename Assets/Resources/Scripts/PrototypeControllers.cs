@@ -17,7 +17,7 @@ public class PrototypeControllers : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F1))
         {
             ragdolls = !ragdolls;
-            GameObject.FindObjectOfType<RagdollController>().SetRagdollActive(ragdolls);
+            GameObject.FindObjectOfType<RagdollController>().SetFullRagdollActive(ragdolls);
         }
         if (Input.GetKeyDown(KeyCode.F2))
         {

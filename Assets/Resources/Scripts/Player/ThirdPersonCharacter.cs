@@ -65,6 +65,11 @@ public class ThirdPersonCharacter : MonoBehaviour
     public HingeJoint m_Joint;
     public Rigidbody m_JointRB;
 
+    private float m_StartJumpHeight;
+
+    [SerializeField]
+    private float m_MaxFallHeight;
+
     void Start()
     {
         m_Animator = GetComponent<Animator>();
@@ -83,6 +88,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     void Update()
     {
         transform.localScale = transform.localScale;
+
     }
 
     public void Move(Vector3 move, bool crouch, bool jump)
@@ -121,6 +127,7 @@ public class ThirdPersonCharacter : MonoBehaviour
             if (m_CanClimb)
             {
                 m_IsClimbing = true;
+                UpdateGroundHeight();
 
                 if (m_IsPreparingJump)
                 {
@@ -139,6 +146,8 @@ public class ThirdPersonCharacter : MonoBehaviour
                         m_IsPreparingJump = true;
                         return;
                     }
+
+
 
                     m_ClimbInfo = m_ClimbController.Climb(world_Move.normalized * Time.deltaTime * 4f);
                     m_CanClimbNextFrame = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
@@ -274,7 +283,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         //if (jumpDir.y != m_JumpPower)
         //    transform.localRotation = Quaternion.LookRotation(Vector3.Scale(m_Rigidbody.velocity, new Vector3(1, 0, 1)));
 
-
+        UpdateGroundHeight();
         m_IsGrounded = false;
         m_Animator.applyRootMotion = false;
         m_GroundCheckDistance = 0.05f;
@@ -325,8 +334,16 @@ public class ThirdPersonCharacter : MonoBehaviour
         // update the animator parameters
         if (!m_IsClimbing)
         {
-            m_Animator.SetFloat("Forward", m_ForwardAmount, 0.1f, Time.deltaTime);
-            m_Animator.SetFloat("Turn", m_TurnAmount, 0.1f, Time.deltaTime);
+            if (!m_IsRolling)
+            {
+                m_Animator.SetFloat("Forward", m_ForwardAmount, 0.1f, Time.deltaTime);
+                m_Animator.SetFloat("Turn", m_TurnAmount, 0.1f, Time.deltaTime);
+            }
+            else
+            {
+                m_Animator.SetFloat("Forward", 0f);
+                m_Animator.SetFloat("Turn", 0f);
+            }
         }
         else
         {
@@ -337,8 +354,8 @@ public class ThirdPersonCharacter : MonoBehaviour
             }
             else if (GameController.instance.bossController.isShaking || m_IsPreparingJump)
             {
-                m_Animator.SetFloat("Forward", 0f, 0.1f, Time.deltaTime);
-                m_Animator.SetFloat("Turn", 0f, 0.1f, Time.deltaTime);
+                m_Animator.SetFloat("Forward", 0f);
+                m_Animator.SetFloat("Turn", 0f);
             }
             else
             {
@@ -346,10 +363,20 @@ public class ThirdPersonCharacter : MonoBehaviour
                 m_Animator.SetFloat("Turn", move.x, 0.1f, Time.deltaTime);
             }
         }
+
         m_Animator.SetBool("Crouch", m_IsCrouching);
         m_Animator.SetBool("OnGround", m_IsGrounded);
         m_Animator.SetBool("Climbing", m_IsClimbing);
-        m_Animator.SetFloat("ClimbLeg", m_ClimbLeg);
+
+        if (move.x > 0.1f)
+            m_Animator.SetFloat("ClimbLeg", 1);
+        else if (move.x < -0.1f)
+            m_Animator.SetFloat("ClimbLeg", 0);
+        else
+            m_Animator.SetFloat("ClimbLeg", m_ClimbLeg);
+
+
+
         m_Animator.SetBool("Roll", m_IsRolling);
         m_Animator.SetBool("Struggling", m_IsStruggling);
 
@@ -417,6 +444,8 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     void Jump()
     {
+        UpdateGroundHeight();
+
         m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
         m_IsGrounded = false;
         m_GroundCheckDistance = 0.05f;
@@ -467,6 +496,19 @@ public class ThirdPersonCharacter : MonoBehaviour
         // it is also good to note that the transform position in the sample assets is at the base of the character
         if (Physics.Raycast(transform.position + (Vector3.up * 0.1f), Vector3.down, out hitInfo, m_GroundCheckDistance))
         {
+            if (!m_IsGrounded)
+            {
+                Debug.Log(m_StartJumpHeight - transform.position.y);
+                if (m_StartJumpHeight - transform.position.y > m_MaxFallHeight)
+                {
+                    StartCoroutine(Die());
+                }
+            }
+            else
+            {
+                UpdateGroundHeight();
+            }
+
             m_GroundNormal = hitInfo.normal;
             m_IsGrounded = true;
             m_Animator.applyRootMotion = true;
@@ -502,6 +544,29 @@ public class ThirdPersonCharacter : MonoBehaviour
         }
     }
 
+    public void UpdateGroundHeight()
+    {
+        m_StartJumpHeight = transform.position.y;
+    }
+
+    IEnumerator Die()
+    {
+        m_Rigidbody.isKinematic = true;
+        GameController.instance.isPlayerControllable = false;
+        GameController.instance.isPausable = false;
+        m_RagdollController.SetFullRagdollActive(true);
+
+        yield return new WaitForSeconds(5f);
+
+        GameController.instance.cameraController.RequestFadeToBlack();
+
+        yield return new WaitForSeconds(1f);
+
+        GameController.START_FROM_CHECKPOINT = true;
+        GameController.instance.ReloadGame();
+
+        yield return 0;
+    }
 
     public void SwitchClimbLeg()
     {

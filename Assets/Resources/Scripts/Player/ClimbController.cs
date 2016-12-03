@@ -51,8 +51,7 @@ public class ClimbController : MonoBehaviour
         {
             ray = new Ray(limitPositions[i].position + move, limitPositions[i].forward);
 
-            if (!Physics.SphereCast(ray, testRadius, out hit, maxDistance, grabMask.value))
-            //if (!Physics.Raycast(ray, out hit, maxDistance, grabMask.value))
+            if (!Physics.Raycast(ray, out hit, maxDistance, grabMask.value))
             {
                 if (i < 2)
                     ci.feetConnected = false;
@@ -77,7 +76,6 @@ public class ClimbController : MonoBehaviour
 
         ray = new Ray(transform.position, transform.forward);
 
-        //if (Physics.SphereCast(ray, testRadius, out hit, maxDistance, grabMask.value))
         if (Physics.Raycast(ray, out hit, maxDistance, grabMask.value))
         {
             //ci.avgNormal = hit.normal;

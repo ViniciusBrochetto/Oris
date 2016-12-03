@@ -33,7 +33,7 @@ public class GameController : MonoBehaviour
             cameraController = FindObjectOfType<FreeLookCam>();
             checkpointController = FindObjectOfType<CheckpointController>();
 
-            CheckpointController.SetLastCheckpoint(1);
+            CheckpointController.SetLastCheckpoint(0);
 
             StartCoroutine(LoadGame());
 
@@ -102,6 +102,7 @@ public class GameController : MonoBehaviour
 
             playerController.transform.position = t.position;
             playerController.transform.rotation = t.rotation;
+            playerController.UpdateGroundHeight();
 
             cameraController.transform.position = t.position;
             cameraController.transform.rotation = t.rotation;
@@ -116,6 +117,11 @@ public class GameController : MonoBehaviour
         isPausable = true;
 
         yield return 0;
+    }
+
+    public void ReloadGame()
+    {
+        SceneManager.LoadScene("LoadingGame");
     }
 
     #endregion
