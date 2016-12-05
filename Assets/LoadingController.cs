@@ -20,17 +20,26 @@ public class LoadingController : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
 
-        AsyncOperation loading = SceneManager.LoadSceneAsync("MainGame");
+        AsyncOperation loading;
+        if (LEVEL_TO_LOAD == 0)
+            loading = SceneManager.LoadSceneAsync("Cutscenes");
+        else
+            loading = SceneManager.LoadSceneAsync("MainGame");
+
+        loading.allowSceneActivation = false;
 
         while (!loading.isDone)
         {
-            m_Slider.value = loading.progress;
+            m_Slider.value = Mathf.Lerp(m_Slider.value, ((loading.progress + 0.1f) * 100f) / 100f, Time.deltaTime * 3f);
+            //m_Slider.value = (loading.progress * 100f) / 100f;
+
+            if (m_Slider.value > 0.98f)
+            {
+                yield return new WaitForSeconds(1f);
+                loading.allowSceneActivation = true;
+            }
+
             yield return new WaitForEndOfFrame();
         }
-
-        loading.allowSceneActivation = true;
-
-
-        yield return 0;
     }
 }

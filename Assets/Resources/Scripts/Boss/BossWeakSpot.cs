@@ -28,18 +28,16 @@ public class BossWeakSpot : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        GameController.instance.bossController.SetPhase(m_BossPhase);
-
         switch (m_BossPhase)
         {
             case BossController.BossPhases.f2:
-                CheckpointController.SetLastCheckpoint(2);
+                CheckpointController.SetLastCheckpoint(6);
                 break;
             case BossController.BossPhases.f3:
-                CheckpointController.SetLastCheckpoint(3);
+                CheckpointController.SetLastCheckpoint(7);
                 break;
             case BossController.BossPhases.f4:
-                CheckpointController.SetLastCheckpoint(4);
+                CheckpointController.SetLastCheckpoint(8);
                 break;
             case BossController.BossPhases.f5:
                 break;
@@ -48,5 +46,9 @@ public class BossWeakSpot : MonoBehaviour, IInteractable
             default:
                 break;
         }
+
+        GameController.instance.bossController.SetPhase(m_BossPhase);
+
+        Destroy(gameObject);
     }
 }

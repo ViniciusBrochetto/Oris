@@ -126,12 +126,12 @@ public class BossController : MonoBehaviour
                 isAttacking = false;
                 break;
             case BossPhases.f3:
-                m_Anim.SetTrigger("start_f3");
+                StartCoroutine(BossDamageScene(BossPhases.f3));
                 isShaking = false;
                 isAttacking = false;
                 break;
             case BossPhases.f4:
-                m_Anim.SetTrigger("start_f4");
+                StartCoroutine(BossDamageScene(BossPhases.f4));
                 isShaking = false;
                 isAttacking = false;
                 break;
@@ -193,6 +193,7 @@ public class BossController : MonoBehaviour
         GameController.instance.isCameraControllable = false;
         GameController.instance.isPausable = false;
 
+        yield return new WaitForSeconds(4f);
         yield return StartCoroutine(GameController.instance.cameraController.FadeToBlack());
 
         switch (phase)
@@ -205,15 +206,39 @@ public class BossController : MonoBehaviour
 
                 GameController.instance.cameraController.transform.position = m_CameraPositions[0].position;
                 GameController.instance.cameraController.SetLookRotation(m_CameraPositions[0].rotation);
+                GameController.instance.cameraController.SetFixedCam(null);
+
                 m_Anim.SetTrigger("start_f2");
+
 
                 yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
                 yield return new WaitForSeconds(10f);
 
                 break;
             case BossPhases.f3:
+                GameController.instance.cameraController.transform.position = m_CameraPositions[1].position;
+                GameController.instance.cameraController.SetLookRotation(m_CameraPositions[1].rotation);
+                m_Anim.SetTrigger("start_f3");
+
+
+                yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
+                yield return new WaitForSeconds(10f);
                 break;
             case BossPhases.f4:
+                GameController.instance.cameraController.transform.position = m_CameraPositions[2].position;
+                GameController.instance.cameraController.SetLookRotation(m_CameraPositions[2].rotation);
+
+                GameController.instance.playerController.m_CanDie = false;
+                GameController.instance.playerController.transform.position = GameController.instance.checkpointController.GetCheckpointPosition().position;
+                GameController.instance.playerController.transform.rotation = GameController.instance.checkpointController.GetCheckpointPosition().rotation;
+
+                m_Anim.SetTrigger("start_f4");
+
+
+                yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
+                yield return new WaitForSeconds(10f);
+
+                GameController.instance.playerController.m_CanDie = true;
                 break;
             case BossPhases.f5:
                 break;

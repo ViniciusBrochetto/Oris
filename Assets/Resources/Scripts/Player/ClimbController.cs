@@ -9,10 +9,6 @@ public class ClimbController : MonoBehaviour
     private float maxDistance = 0.5f;
 
     [SerializeField]
-    [Range(0.01f, 2f)]
-    private float testRadius = 0.5f;
-
-    [SerializeField]
     private LayerMask grabMask;
 
     [SerializeField]
@@ -76,7 +72,7 @@ public class ClimbController : MonoBehaviour
 
         ray = new Ray(transform.position, transform.forward);
 
-        if (Physics.Raycast(ray, out hit, maxDistance, grabMask.value))
+        if (Physics.Raycast(ray, out hit, maxDistance * 2f, grabMask.value))
         {
             //ci.avgNormal = hit.normal;
             ci.grabPosition = hit.point;
@@ -94,55 +90,6 @@ public class ClimbController : MonoBehaviour
 
 
 
-        return ci;
-    }
-
-    public ClimbInfo ClimbSphere(Vector3 move)
-    {
-        ClimbInfo ci = new ClimbInfo();
-        ci.feetConnected = true;
-        ci.handsConnected = true;
-
-        Ray ray;
-        RaycastHit hit;
-        for (int i = 0; i < limitPositions.Length; i++)
-        {
-            ray = new Ray(limitPositions[i].position + move, limitPositions[i].forward + move);
-
-            if (!Physics.SphereCast(ray, testRadius, out hit, maxDistance, grabMask.value))
-            {
-                if (i < 2)
-                    ci.feetConnected = false;
-                else
-                    ci.handsConnected = false;
-
-                if (debug)
-                    Debug.DrawRay(ray.origin, ray.direction * maxDistance, Color.red);
-            }
-            else
-            {
-                if (Vector3.Dot(transform.forward, hit.normal) > -0.5f)
-                {
-                    if (i < 2)
-                        ci.feetConnected = false;
-                    else
-                        ci.handsConnected = false;
-                }
-                if (debug)
-                    Debug.DrawRay(ray.origin, ray.direction * maxDistance, Color.green);
-            }
-
-
-
-            if (debug)
-            {
-                GameObject g = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                g.transform.localScale = Vector3.one * testRadius * 2f;
-                g.transform.position = ray.origin + (ray.direction.normalized * hit.distance);
-                g.GetComponent<Collider>().enabled = false;
-                Destroy(g, Time.fixedDeltaTime);
-            }
-        }
         return ci;
     }
 }

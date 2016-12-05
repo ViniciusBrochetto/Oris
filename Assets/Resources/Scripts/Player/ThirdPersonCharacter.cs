@@ -8,6 +8,7 @@ using UnityEngine;
 
 public class ThirdPersonCharacter : MonoBehaviour
 {
+
     [SerializeField]
     float m_MovingTurnSpeed = 360;
     [SerializeField]
@@ -22,8 +23,6 @@ public class ThirdPersonCharacter : MonoBehaviour
     [SerializeField]
     float m_RunCycleLegOffset = 0.2f; //specific to the character in sample assets, will need to be modified to work with others
     [SerializeField]
-    float m_MoveSpeedMultiplier = 1f;
-    [SerializeField]
     float m_AnimSpeedMultiplier = 1f;
     [SerializeField]
     float m_GroundCheckDistance = 0.1f;
@@ -31,6 +30,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     Rigidbody m_Rigidbody;
     Animator m_Animator;
 
+    public bool m_CanDie = true;
     public bool m_IsClimbing;
     bool m_IsGrounded;
     bool m_IsRolling;
@@ -61,7 +61,6 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     private ClimbController m_ClimbController;
     private RagdollController m_RagdollController;
-    private IKController m_IKController;
     public HingeJoint m_Joint;
     public Rigidbody m_JointRB;
 
@@ -79,7 +78,6 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_CapsuleCenter = m_Capsule.center;
         m_ClimbController = GetComponent<ClimbController>();
         m_RagdollController = GetComponent<RagdollController>();
-        m_IKController = GetComponent<IKController>();
 
         m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         m_OrigGroundCheckDistance = m_GroundCheckDistance;
@@ -127,9 +125,10 @@ public class ThirdPersonCharacter : MonoBehaviour
             if (m_CanClimb)
             {
                 m_IsClimbing = true;
+                m_Capsule.enabled = false;
                 UpdateGroundHeight();
 
-                if (m_IsPreparingJump)
+                if (m_IsPreparingJump && m_IsClimbing)
                 {
                     if (jumpRelease)
                     {
@@ -141,13 +140,11 @@ public class ThirdPersonCharacter : MonoBehaviour
                 }
                 else
                 {
-                    if (jump)
+                    if (jump && m_IsClimbing)
                     {
                         m_IsPreparingJump = true;
                         return;
                     }
-
-
 
                     m_ClimbInfo = m_ClimbController.Climb(world_Move.normalized * Time.deltaTime * 4f);
                     m_CanClimbNextFrame = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
@@ -161,40 +158,22 @@ public class ThirdPersonCharacter : MonoBehaviour
 
                             transform.parent = m_ClimbInfo.parentTransform;
 
-                            transform.position = Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
+                            //transform.position = Vector3.Lerp(transform.position, m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius, Time.deltaTime * 5f);
+                            transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius;
                             transform.LookAt(m_ClimbInfo.grabPosition);
-
-                            if (m_Joint)
-                            {
-                                m_Joint.transform.parent = m_ClimbInfo.parentTransform;
-                                m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
-                                m_Joint.connectedBody = null;
-                                m_JointRB.useGravity = false;
-                                m_JointRB.constraints = RigidbodyConstraints.FreezeRotation;
-                            }
-
-                            m_Capsule.enabled = false;
+                        }
+                        else
+                        {
+                            Debug.Log("Cant climb");
                         }
                     }
                     else
                     {
                         m_IsStruggling = true;
-
-                        if (m_Joint)
-                        {
-                            m_Joint.transform.position = m_ClimbInfo.grabPosition + m_ClimbInfo.avgNormal * m_Capsule.radius + (transform.up * 1.5f);
-                            if (m_Joint.connectedBody == null)
-                            {
-                                m_Joint.connectedBody = m_JointRB;
-                                m_JointRB.constraints = RigidbodyConstraints.None;
-                                m_JointRB.useGravity = true;
-                            }
-                        }
                     }
                 }
 
                 UpdateAnimator(move);
-
                 return;
             }
         }
@@ -221,6 +200,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         {
             if (GameController.instance.interactable != null)
             {
+                m_Animator.SetTrigger("Interact");
                 GameController.instance.interactable.Interact();
             }
         }
@@ -261,7 +241,7 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     }
 
-    bool temp_HangWait = false;
+    public bool temp_HangWait = false;
     IEnumerator WallJumpTimer()
     {
         temp_HangWait = true;
@@ -446,7 +426,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     {
         UpdateGroundHeight();
 
-        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
+        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower * .8f, m_Rigidbody.velocity.z);
         m_IsGrounded = false;
         m_GroundCheckDistance = 0.05f;
     }
@@ -473,7 +453,7 @@ public class ThirdPersonCharacter : MonoBehaviour
             Vector3 v = (m_Animator.deltaPosition) / Time.deltaTime;
 
             // we preserve the existing y part of the current velocity.
-            v.y = m_Rigidbody.velocity.y;
+            v.y = Mathf.Min(0f, m_Rigidbody.velocity.y * m_GravityMultiplier);
             m_Rigidbody.velocity = v;
         }
         else if (m_IsClimbing)
@@ -498,7 +478,6 @@ public class ThirdPersonCharacter : MonoBehaviour
         {
             if (!m_IsGrounded)
             {
-                Debug.Log(m_StartJumpHeight - transform.position.y);
                 if (m_StartJumpHeight - transform.position.y > m_MaxFallHeight)
                 {
                     StartCoroutine(Die());
@@ -551,20 +530,21 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     IEnumerator Die()
     {
-        m_Rigidbody.isKinematic = true;
-        GameController.instance.isPlayerControllable = false;
-        GameController.instance.isPausable = false;
-        m_RagdollController.SetFullRagdollActive(true);
+        if (m_CanDie)
+        {
+            m_Rigidbody.isKinematic = true;
+            GameController.instance.isPlayerControllable = false;
+            GameController.instance.isPausable = false;
+            m_RagdollController.SetFullRagdollActive(true);
 
-        yield return new WaitForSeconds(5f);
+            yield return new WaitForSeconds(5f);
 
-        GameController.instance.cameraController.RequestFadeToBlack();
+            GameController.instance.cameraController.RequestFadeToBlack();
 
-        yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(1f);
 
-        GameController.START_FROM_CHECKPOINT = true;
-        GameController.instance.ReloadGame();
-
+            GameController.instance.ReloadGame();
+        }
         yield return 0;
     }
 

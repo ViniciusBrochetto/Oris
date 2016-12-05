@@ -25,15 +25,15 @@ public class MenuController : MonoBehaviour
     {
         SceneManager.LoadScene("LoadingGame");
         LoadingController.LEVEL_TO_LOAD = 0;
-        GameController.START_FROM_CHECKPOINT = false;
-        //CheckpointController.SetLastCheckpoint(0);
+        CheckpointController.SetLastCheckpoint(0);
     }
 
     public void ContinueGame()
     {
+
         SceneManager.LoadScene("LoadingGame");
-        LoadingController.LEVEL_TO_LOAD = 0;
-        GameController.START_FROM_CHECKPOINT = true;
+        CheckpointController.SetLastCheckpoint(3);
+        LoadingController.LEVEL_TO_LOAD = 1;
     }
 
     public void ApplyOptions()
