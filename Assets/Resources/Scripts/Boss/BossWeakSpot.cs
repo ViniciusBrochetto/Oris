@@ -7,6 +7,8 @@ public class BossWeakSpot : MonoBehaviour, IInteractable
     [SerializeField]
     private BossController.BossPhases m_BossPhase;
 
+    public bool isInteractable = true;
+
     [SerializeField]
     private Transform animationPosition;
 
@@ -28,28 +30,32 @@ public class BossWeakSpot : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        switch (m_BossPhase)
+        if (isInteractable)
         {
-            case BossController.BossPhases.f2:
-                CheckpointController.SetLastCheckpoint(6);
-                break;
-            case BossController.BossPhases.f3:
-                CheckpointController.SetLastCheckpoint(7);
-                break;
-            case BossController.BossPhases.f4:
-                CheckpointController.SetLastCheckpoint(8);
-                break;
-            case BossController.BossPhases.f5:
-                CheckpointController.SetLastCheckpoint(9);
-                break;
-            case BossController.BossPhases.f6:
-                break;
-            default:
-                break;
+            switch (m_BossPhase)
+            {
+                case BossController.BossPhases.f2:
+                    CheckpointController.SetLastCheckpoint(6);
+                    break;
+                case BossController.BossPhases.f3:
+                    CheckpointController.SetLastCheckpoint(7);
+                    break;
+                case BossController.BossPhases.f4:
+                    CheckpointController.SetLastCheckpoint(8);
+                    break;
+                case BossController.BossPhases.f5:
+                    CheckpointController.SetLastCheckpoint(9);
+                    break;
+                default:
+                    break;
+            }
+            isInteractable = false;
+            GameController.instance.bossController.SetPhase(m_BossPhase);
         }
+    }
 
-        GameController.instance.bossController.SetPhase(m_BossPhase);
-
-        Destroy(gameObject);
+    public bool GetInteractable()
+    {
+        return isInteractable;
     }
 }

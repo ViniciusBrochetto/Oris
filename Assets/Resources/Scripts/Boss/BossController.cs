@@ -33,6 +33,11 @@ public class BossController : MonoBehaviour
     [SerializeField]
     private Transform[] m_CameraPositions;
 
+    [SerializeField]
+    public Transform m_Mask;
+    [SerializeField]
+    public Transform m_MaskBroken;
+
     void Awake()
     {
         m_Anim = GetComponent<Animator>();
@@ -51,11 +56,7 @@ public class BossController : MonoBehaviour
                 }
                 break;
             case BossPhases.f1:
-                if (canAttack && !isShaking)
-                {
-                    m_BossPhase = BossPhases.f0;
-                }
-                else if (canShake && !isShaking && GameController.instance.playerController.m_IsClimbing && GameController.instance.cameraController.m_CameraLockedForBoss)
+                if (canShake && !isShaking && GameController.instance.playerController.m_IsClimbing && GameController.instance.cameraController.m_CameraLockedForBoss)
                 {
                     canShake = false;
                     m_Anim.SetTrigger("start_shake");
@@ -81,8 +82,6 @@ public class BossController : MonoBehaviour
                 }
                 break;
             case BossPhases.f5:
-                break;
-            case BossPhases.f6:
                 break;
             default:
                 break;
@@ -116,6 +115,8 @@ public class BossController : MonoBehaviour
 
     public void SetPhase(BossPhases phase)
     {
+        isShaking = false;
+        isAttacking = false;
         switch (phase)
         {
             case BossPhases.f0:
@@ -124,28 +125,15 @@ public class BossController : MonoBehaviour
                 break;
             case BossPhases.f2:
                 StartCoroutine(BossDamageScene(BossPhases.f2));
-                isShaking = false;
-                isAttacking = false;
                 break;
             case BossPhases.f3:
                 StartCoroutine(BossDamageScene(BossPhases.f3));
-                isShaking = false;
-                isAttacking = false;
                 break;
             case BossPhases.f4:
                 StartCoroutine(BossDamageScene(BossPhases.f4));
-                isShaking = false;
-                isAttacking = false;
                 break;
             case BossPhases.f5:
-                m_Anim.SetTrigger("start_f5");
-                isShaking = false;
-                isAttacking = false;
-                break;
-            case BossPhases.f6:
-                m_Anim.SetTrigger("start_f6");
-                isShaking = false;
-                isAttacking = false;
+                StartCoroutine(BossDamageScene(BossPhases.f5));
                 break;
             default:
                 break;
@@ -157,6 +145,7 @@ public class BossController : MonoBehaviour
     {
         if (tag == "Boss_StartF1" && m_BossPhase != BossPhases.f1)
         {
+            isShaking = false;
             isAttacking = false;
             m_Anim.SetTrigger("start_f1");
             m_BossPhase = BossPhases.f1;
@@ -212,8 +201,11 @@ public class BossController : MonoBehaviour
         GameController.instance.isCameraControllable = false;
         GameController.instance.isPausable = false;
 
+
         yield return new WaitForSeconds(4f);
         yield return StartCoroutine(GameController.instance.cameraController.FadeToBlack());
+        yield return new WaitForSeconds(2f);
+        GameController.instance.playerController.gameObject.SetActive(false);
 
         switch (phase)
         {
@@ -260,8 +252,21 @@ public class BossController : MonoBehaviour
                 GameController.instance.playerController.m_CanDie = true;
                 break;
             case BossPhases.f5:
-                break;
-            case BossPhases.f6:
+                GameController.instance.playerController.transform.parent = null;
+                GameController.instance.cameraController.transform.position = m_CameraPositions[2].position;
+                GameController.instance.cameraController.SetLookRotation(m_CameraPositions[2].rotation);
+
+                GameController.instance.playerController.m_CanDie = false;
+                GameController.instance.playerController.transform.position = GameController.instance.checkpointController.GetCheckpointPosition().position;
+                GameController.instance.playerController.transform.rotation = GameController.instance.checkpointController.GetCheckpointPosition().rotation;
+
+                m_Anim.SetTrigger("end_game");
+
+
+                yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
+                yield return new WaitForSeconds(10f);
+
+                GameController.instance.playerController.m_CanDie = true;
                 break;
             default:
                 break;
@@ -269,16 +274,23 @@ public class BossController : MonoBehaviour
 
         yield return StartCoroutine(GameController.instance.cameraController.FadeToBlack());
 
+        GameController.instance.playerController.gameObject.SetActive(true);
         GameController.instance.isPlayerControllable = true;
         GameController.instance.isCameraControllable = true;
         GameController.instance.isPausable = true;
+        isShaking = false;
+        isAttacking = false;
+
         yield return new WaitForSeconds(1.5f);
-
         yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
-
-
-
         yield return 0;
+    }
+
+    public void BreakMask()
+    {
+        m_Mask.gameObject.SetActive(false);
+        m_MaskBroken.gameObject.SetActive(true);
+        m_MaskBroken.transform.parent = null;
     }
 
     public enum BossPhases
@@ -288,7 +300,6 @@ public class BossController : MonoBehaviour
         f2,
         f3,
         f4,
-        f5,
-        f6
+        f5
     }
 }

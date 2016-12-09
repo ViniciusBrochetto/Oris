@@ -280,7 +280,23 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.27299702
+        functionName: setAttacking
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.27299702
+        functionName: setShaking
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask:
       - path: 
         weight: 1
@@ -1399,7 +1415,7 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0
+      - time: 0.078688525
         functionName: setShaking
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
@@ -2465,7 +2481,7 @@ ModelImporter:
       name: anm_boss_attack_f4
       takeName: Take 001
       firstFrame: 2870
-      lastFrame: 3080
+      lastFrame: 3380
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -2485,10 +2501,18 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.74689865
+      - time: 0.16984947
         functionName: StartCameraShake
         data: 
         objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.1957847
+        functionName: InstantiateParticle
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
+          type: 3}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
@@ -2648,8 +2672,8 @@ ModelImporter:
     - serializedVersion: 16
       name: anm_boss_attack_f4_end
       takeName: Take 001
-      firstFrame: 3081
-      lastFrame: 3250
+      firstFrame: 3380
+      lastFrame: 3550
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -3393,7 +3417,15 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.61424255
+        functionName: BreakMask
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 90308ce97594d2146af795b30c43f85c,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask:
       - path: 
         weight: 1
@@ -3537,8 +3569,6 @@ ModelImporter:
       - path: LeftArmFase3
         weight: 1
       - path: Mask
-        weight: 1
-      - path: Plane001
         weight: 1
       - path: RightArmFase1
         weight: 1

@@ -33,7 +33,7 @@ public class GameController : MonoBehaviour
             checkpointController = FindObjectOfType<CheckpointController>();
             tutorialController = FindObjectOfType<TutorialController>();
 
-            CheckpointController.SetLastCheckpoint(5);
+            //CheckpointController.SetLastCheckpoint(5);
 
             StartCoroutine(LoadGame());
         }
@@ -77,31 +77,54 @@ public class GameController : MonoBehaviour
         int cp = CheckpointController.GetLastCheckpoint();
         Transform t = checkpointController.GetCheckpointPosition();
 
+        //SET ANIMATIONS
         switch (cp)
         {
             case 6:
                 bossController.m_BossPhase = BossController.BossPhases.f2;
                 playerController.transform.parent = t.parent;
                 bossController.m_Anim.Play("anm_boss_idle_f2");
-                GameObject g1 = GameObject.Find("WeakSpotF1");
-                Destroy(g1);
                 break;
             case 7:
                 bossController.m_BossPhase = BossController.BossPhases.f3;
                 playerController.transform.parent = t.parent;
                 bossController.m_Anim.Play("anm_boss_idle_f3");
-                GameObject g2 = GameObject.Find("WeakSpotF2");
-                Destroy(g2);
                 break;
             case 8:
                 bossController.m_BossPhase = BossController.BossPhases.f4;
-                playerController.transform.parent = t.parent;
                 bossController.m_Anim.Play("anm_boss_idle_f4");
-                GameObject g3 = GameObject.Find("WeakSpotF3");
-                Destroy(g3);
+                break;
+            case 9:
+                bossController.m_BossPhase = BossController.BossPhases.f5;
+                bossController.m_Anim.Play("anm_boss_ending_idle");
+                bossController.m_Mask.gameObject.SetActive(false);
+                bossController.m_MaskBroken.gameObject.SetActive(false);
                 break;
             default:
                 break;
+        }
+
+        //Disable Interactions
+        GameObject g;
+        if (cp >= 6)
+        {
+            g = GameObject.Find("WeakSpotF1");
+            g.GetComponent<BossWeakSpot>().isInteractable = false;
+        }
+        if (cp >= 7)
+        {
+            g = GameObject.Find("WeakSpotF2");
+            g.GetComponent<BossWeakSpot>().isInteractable = false;
+        }
+        if (cp >= 8)
+        {
+            g = GameObject.Find("WeakSpotF3");
+            g.GetComponent<BossWeakSpot>().isInteractable = false;
+        }
+        if (cp >= 9)
+        {
+            g = GameObject.Find("WeakSpotF4");
+            g.GetComponent<BossWeakSpot>().isInteractable = false;
         }
 
         yield return new WaitForSeconds(1f);

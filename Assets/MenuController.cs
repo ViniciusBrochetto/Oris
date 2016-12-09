@@ -23,6 +23,7 @@ public class MenuController : MonoBehaviour
     #region GAME_START/LOAD/OPTIONS/QUIT
     public void StartNewGame()
     {
+        CutsceneController.PLAY_END_GAME = false;
         SceneManager.LoadScene("LoadingGame");
         LoadingController.LEVEL_TO_LOAD = 0;
         CheckpointController.SetLastCheckpoint(0);
@@ -30,9 +31,8 @@ public class MenuController : MonoBehaviour
 
     public void ContinueGame()
     {
-
+        CutsceneController.PLAY_END_GAME = false;
         SceneManager.LoadScene("LoadingGame");
-        CheckpointController.SetLastCheckpoint(3);
         LoadingController.LEVEL_TO_LOAD = 1;
     }
 

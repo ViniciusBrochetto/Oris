@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class CutsceneController : MonoBehaviour
 {
+    public static bool PLAY_END_GAME = false;
 
     public Transform[] m_Stills;
     public Transform[] m_StillPositions;
@@ -18,7 +19,10 @@ public class CutsceneController : MonoBehaviour
         m_FadeImage.enabled = true;
         m_FadeImage.color = new Color(0f, 0f, 0f, 1f);
 
-        StartCoroutine(PlayCutscene());
+        if (!PLAY_END_GAME)
+            StartCoroutine(PlayCutscene());
+        else
+            StartCoroutine(PlayEndCutscene());
     }
 
     void Update()
@@ -33,6 +37,40 @@ public class CutsceneController : MonoBehaviour
             LoadingController.LEVEL_TO_LOAD = 1;
             SceneManager.LoadScene("LoadingGame");
         }
+    }
+
+    private IEnumerator PlayEndCutscene()
+    {
+        int idx = 8;
+
+        //-------------- Still 00 ------------------------
+        SetupCamPosition(idx);
+        m_Stills[idx].gameObject.SetActive(true);
+        StartCoroutine(TranslateCamera(Vector3.forward, 8f, 0.1f));
+        yield return StartCoroutine(FadeFromBlack(4f));
+        yield return new WaitForSeconds(4f);
+        yield return StartCoroutine(FadeToBlack(1f));
+        m_Stills[idx].gameObject.SetActive(false);
+        idx++;
+        //------------------------------------------------
+
+
+        idx = 9;
+
+        //-------------- Still 00 ------------------------
+        SetupCamPosition(idx);
+        m_Stills[idx].gameObject.SetActive(true);
+        StartCoroutine(TranslateCamera(Vector3.forward, 8f, 0.1f));
+        yield return StartCoroutine(FadeFromBlack(2f));
+        yield return new WaitForSeconds(6.3f);
+        yield return StartCoroutine(FadeToBlack(1.2f));
+        m_Stills[idx].gameObject.SetActive(false);
+        idx++;
+        //------------------------------------------------
+
+        SceneManager.LoadScene("MainMenu");
+
+        yield return 0;
     }
 
     private IEnumerator PlayCutscene()

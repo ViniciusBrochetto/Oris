@@ -1,0 +1,18 @@
+Notas para os áudios
+
+01 - Rocks - Devem ser tocados juntamente com o impacto dos ataques do boss, randomizando os 4 áudios.
+
+02 - CreepySoundscape - Creepy01 -  Tocado cada vez mais alto ao longo do caminho entre a caverna e o boss.
+Creepy02 - Tocado na caverna (volume baixo).
+Creepy03 - Tocado durante a batalha (volume médio).
+
+03 - Wind - Tocar baixo a partir do momento que sai da caverna. Ao subir no boss, aumentar o volume.
+
+04 - Movement - Tudo auto-explicativo. OBS: StepsMud é para o boss.
+
+05 - Soundscapes - Nomes autoexplicativos também.
+
+06 - Boss - O growl e o laugh podem ser tocados aleatóriamente, mas se possível tocar algum deles quando o player fica proximo ao rosto gigante.
+
+07 - Menu - startgame deve ser tocado quando o player clicar em start.
+

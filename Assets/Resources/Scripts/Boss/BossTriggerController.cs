@@ -6,7 +6,10 @@ public class BossTriggerController : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (other.tag == "Player")
+        {
             GameController.instance.bossController.PlayerNearby(true);
+            Destroy(gameObject);
+        }
 
     }
 

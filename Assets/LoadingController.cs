@@ -17,9 +17,6 @@ public class LoadingController : MonoBehaviour
 
     IEnumerator LoadLevel()
     {
-
-        yield return new WaitForSeconds(2f);
-
         AsyncOperation loading;
         if (LEVEL_TO_LOAD == 0)
             loading = SceneManager.LoadSceneAsync("Cutscenes");
@@ -31,8 +28,6 @@ public class LoadingController : MonoBehaviour
         while (!loading.isDone)
         {
             m_Slider.value = Mathf.Lerp(m_Slider.value, ((loading.progress + 0.1f) * 100f) / 100f, Time.deltaTime * 3f);
-            //m_Slider.value = (loading.progress * 100f) / 100f;
-
             if (m_Slider.value > 0.98f)
             {
                 yield return new WaitForSeconds(1f);

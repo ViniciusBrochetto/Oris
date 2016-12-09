@@ -16,8 +16,6 @@ public class CheckpointController : MonoBehaviour
         return m_SpawnLocationsMainLevel[GetLastCheckpoint()];
     }
 
-
-
     public static void SetLastCheckpoint(int c)
     {
         Debug.Log("New checkpoint set (code " + c.ToString() + ")");

@@ -30,7 +30,7 @@ public class PrototypeControllers : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.F4))
         {
-            StartCoroutine(GameController.instance.bossController.BossDamageScene(BossController.BossPhases.f2));
+            StartCoroutine(GameController.instance.bossController.BossDamageScene(BossController.BossPhases.f5));
         }
     }
 }
