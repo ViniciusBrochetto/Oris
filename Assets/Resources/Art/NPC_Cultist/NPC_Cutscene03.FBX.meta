@@ -40,6 +40,20 @@ ModelImporter:
     100064: NPC_Body
     100066: //RootNode
     100068: NPC_Feet
+    100070: Bip003 Footsteps
+    100072: Bip003 HeadNub
+    100074: Bip003 L Finger0Nub
+    100076: Bip003 L Finger1Nub
+    100078: Bip003 L Finger2Nub
+    100080: Bip003 L Finger3Nub
+    100082: Bip003 L Finger4Nub
+    100084: Bip003 L Toe0Nub
+    100086: Bip003 R Finger0Nub
+    100088: Bip003 R Finger1Nub
+    100090: Bip003 R Finger2Nub
+    100092: Bip003 R Finger3Nub
+    100094: Bip003 R Finger4Nub
+    100096: Bip003 R Toe0Nub
     400000: Bip003
     400002: Bip003 Head
     400004: Bip003 L Calf
@@ -75,6 +89,20 @@ ModelImporter:
     400064: NPC_Body
     400066: //RootNode
     400068: NPC_Feet
+    400070: Bip003 Footsteps
+    400072: Bip003 HeadNub
+    400074: Bip003 L Finger0Nub
+    400076: Bip003 L Finger1Nub
+    400078: Bip003 L Finger2Nub
+    400080: Bip003 L Finger3Nub
+    400082: Bip003 L Finger4Nub
+    400084: Bip003 L Toe0Nub
+    400086: Bip003 R Finger0Nub
+    400088: Bip003 R Finger1Nub
+    400090: Bip003 R Finger2Nub
+    400092: Bip003 R Finger3Nub
+    400094: Bip003 R Finger4Nub
+    400096: Bip003 R Toe0Nub
     4300000: NPC_Body
     4300002: NPC_Feet
     7400000: Take 001

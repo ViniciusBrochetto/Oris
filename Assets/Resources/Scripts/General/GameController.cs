@@ -33,6 +33,8 @@ public class GameController : MonoBehaviour
             checkpointController = FindObjectOfType<CheckpointController>();
             tutorialController = FindObjectOfType<TutorialController>();
 
+            CheckpointController.SetLastCheckpoint(5);
+
             StartCoroutine(LoadGame());
         }
         else

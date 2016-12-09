@@ -6,13 +6,13 @@ public class BossTriggerController : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (other.tag == "Player")
-            GameController.instance.bossController.canAttack = true;
+            GameController.instance.bossController.PlayerNearby(true);
 
     }
 
     void OnTriggerExit(Collider other)
     {
         if (other.tag == "Player")
-            GameController.instance.bossController.canAttack = false;
+            GameController.instance.bossController.PlayerNearby(false);
     }
 }

@@ -18,6 +18,8 @@ public class BossController : MonoBehaviour
     public bool isAttacking = false;
     public bool isShaking = false;
     public bool isPlayingIntro = false;
+    public bool isPlayerNearby = false;
+    public bool isTaunting = false;
 
     public bool canAttack = false;
     public bool canShake = false;
@@ -41,7 +43,7 @@ public class BossController : MonoBehaviour
         switch (m_BossPhase)
         {
             case BossPhases.f0:
-                if (canAttack && !isAttacking)
+                if (canAttack && !isAttacking && !isTaunting)
                 {
                     canAttack = false;
                     m_Anim.SetTrigger("start_attack");
@@ -175,6 +177,23 @@ public class BossController : MonoBehaviour
     public void setAttacking(int i)
     {
         isAttacking = i == 1;
+    }
+
+    public void setTaunting(int i)
+    {
+        isTaunting = i == 1;
+    }
+
+    public void PlayerNearby(bool b)
+    {
+        isPlayerNearby = b;
+
+        if (b)
+        {
+            m_Anim.SetTrigger("boss_roar");
+            isTaunting = true;
+            canAttack = true;
+        }
     }
 
     public void StartCameraShake()

@@ -347,6 +347,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_Animator.SetBool("Crouch", m_IsCrouching);
         m_Animator.SetBool("OnGround", m_IsGrounded);
         m_Animator.SetBool("Climbing", m_IsClimbing);
+        m_Animator.SetFloat("walking_on_boss", m_IsGroundedOnBoss ? 1f : 0f);
 
         if (move.x > 0.1f)
             m_Animator.SetFloat("ClimbLeg", 1);

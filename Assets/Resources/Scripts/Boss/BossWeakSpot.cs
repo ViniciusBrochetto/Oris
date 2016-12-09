@@ -40,6 +40,7 @@ public class BossWeakSpot : MonoBehaviour, IInteractable
                 CheckpointController.SetLastCheckpoint(8);
                 break;
             case BossController.BossPhases.f5:
+                CheckpointController.SetLastCheckpoint(9);
                 break;
             case BossController.BossPhases.f6:
                 break;
