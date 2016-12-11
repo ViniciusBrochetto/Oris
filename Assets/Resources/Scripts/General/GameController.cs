@@ -35,7 +35,7 @@ public class GameController : MonoBehaviour
             tutorialController = FindObjectOfType<TutorialController>();
             audioController = FindObjectOfType<GameAudioController>();
 
-            CheckpointController.SetLastCheckpoint(0);
+            CheckpointController.SetLastCheckpoint(4);
 
             StartCoroutine(LoadGame());
         }
@@ -142,7 +142,10 @@ public class GameController : MonoBehaviour
         cameraController.RequestFadeFromBlack();
 
         if (cp == 0)
+        {
+            cameraShakeController.RequestShake(3f, 0.2f, true);
             playerController.SetRolling(1);
+        }
 
         isPlayerControllable = true;
         isCameraControllable = true;

@@ -544,6 +544,7 @@ public class ThirdPersonCharacter : MonoBehaviour
     {
         if (m_CanDie)
         {
+            m_AudioController.Damage();
             m_Rigidbody.isKinematic = true;
             GameController.instance.isPausable = false;
             m_RagdollController.SetFullRagdollActive(true);

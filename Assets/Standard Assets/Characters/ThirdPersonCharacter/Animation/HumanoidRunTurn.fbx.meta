@@ -524,23 +524,7 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events:
-      - time: 0.5163203
-        functionName: Walk
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: c9c7a296cf388f145871916f919e6174,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.9406529
-        functionName: Walk
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: c9c7a296cf388f145871916f919e6174,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
+      events: []
       transformMask:
       - path: 
         weight: 1
@@ -746,23 +730,7 @@ ModelImporter:
       mirror: 1
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events:
-      - time: 0.48961425
-        functionName: Walk
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: c9c7a296cf388f145871916f919e6174,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.95548946
-        functionName: Walk
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: c9c7a296cf388f145871916f919e6174,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
+      events: []
       transformMask:
       - path: 
         weight: 1
