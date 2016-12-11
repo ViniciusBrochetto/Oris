@@ -232,7 +232,23 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.13649851
+        functionName: Walk
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c9c7a296cf388f145871916f919e6174,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5637982
+        functionName: Walk
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c9c7a296cf388f145871916f919e6174,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask:
       - path: 
         weight: 1
@@ -616,6 +632,8 @@ ModelImporter:
         weight: 0
       - path: Clothes
         weight: 0
+      - path: hair_low
+        weight: 0
       - path: Saia
         weight: 0
       maskType: 0
@@ -825,6 +843,8 @@ ModelImporter:
         weight: 0
       - path: Clothes
         weight: 0
+      - path: hair_low
+        weight: 0
       - path: Saia
         weight: 0
       maskType: 0
@@ -1026,6 +1046,8 @@ ModelImporter:
         weight: 0
       - path: Clothes
         weight: 0
+      - path: hair_low
+        weight: 0
       - path: Saia
         weight: 0
       maskType: 0
@@ -1226,6 +1248,8 @@ ModelImporter:
       - path: Cinto
         weight: 0
       - path: Clothes
+        weight: 0
+      - path: hair_low
         weight: 0
       - path: Saia
         weight: 0
@@ -1458,7 +1482,23 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.10385751
+        functionName: Walk
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c9c7a296cf388f145871916f919e6174,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5697329
+        functionName: Walk
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c9c7a296cf388f145871916f919e6174,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask:
       - path: 
         weight: 1
@@ -3286,6 +3326,14 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
+      - time: 0.2689683
+        functionName: Roll
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c9c7a296cf388f145871916f919e6174,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       - time: 0.78827363
         functionName: SetRolling
         data: 

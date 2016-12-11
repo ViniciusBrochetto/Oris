@@ -60,6 +60,7 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     private ClimbController m_ClimbController;
     private RagdollController m_RagdollController;
+    private PlayerAudioController m_AudioController;
     public HingeJoint m_Joint;
     public Rigidbody m_JointRB;
 
@@ -77,6 +78,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_CapsuleCenter = m_Capsule.center;
         m_ClimbController = GetComponent<ClimbController>();
         m_RagdollController = GetComponent<RagdollController>();
+        m_AudioController = GetComponent<PlayerAudioController>();
 
         m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         m_OrigGroundCheckDistance = m_GroundCheckDistance;
@@ -278,6 +280,8 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_GroundCheckDistance = 0.05f;
         m_Rigidbody.useGravity = true;
         m_IsClimbing = false;
+
+        m_AudioController.Jump();
     }
 
     void ScaleCapsuleForCrouch()
@@ -431,6 +435,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower * .8f, m_Rigidbody.velocity.z);
         m_IsGrounded = false;
         m_GroundCheckDistance = 0.05f;
+        m_AudioController.Jump();
     }
 
     void ApplyExtraTurnRotation()
@@ -483,6 +488,12 @@ public class ThirdPersonCharacter : MonoBehaviour
                 if (m_StartJumpHeight - transform.position.y > m_MaxFallHeight)
                 {
                     StartCoroutine(Die());
+                    return;
+                }
+
+                if (m_StartJumpHeight - transform.position.y > m_MaxFallHeight * 0.5f)
+                {
+                    m_AudioController.Jump();
                 }
             }
             else
@@ -534,9 +545,9 @@ public class ThirdPersonCharacter : MonoBehaviour
         if (m_CanDie)
         {
             m_Rigidbody.isKinematic = true;
-            GameController.instance.isPlayerControllable = false;
             GameController.instance.isPausable = false;
             m_RagdollController.SetFullRagdollActive(true);
+            GameController.instance.isPlayerControllable = false;
 
             yield return new WaitForSeconds(5f);
 

@@ -20,7 +20,7 @@ public class TutorialController : MonoBehaviour
 
     void Update()
     {
-        if (Input.anyKeyDown && Time.unscaledTime - m_TutStartTime > 3f )
+        if (Input.anyKeyDown && Time.unscaledTime - m_TutStartTime > 1f )
         {
             CancelTutorial();
         }

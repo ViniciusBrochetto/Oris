@@ -14,6 +14,7 @@ public class GameController : MonoBehaviour
     public CheckpointController checkpointController;
     public TutorialController tutorialController;
     public IInteractable interactable;
+    public GameAudioController audioController;
 
     public bool isCameraControllable = true;
     public bool isPlayerControllable = true;
@@ -32,8 +33,9 @@ public class GameController : MonoBehaviour
             cameraController = FindObjectOfType<FreeLookCam>();
             checkpointController = FindObjectOfType<CheckpointController>();
             tutorialController = FindObjectOfType<TutorialController>();
+            audioController = FindObjectOfType<GameAudioController>();
 
-            //CheckpointController.SetLastCheckpoint(5);
+            CheckpointController.SetLastCheckpoint(0);
 
             StartCoroutine(LoadGame());
         }
@@ -106,8 +108,10 @@ public class GameController : MonoBehaviour
 
         //Disable Interactions
         GameObject g;
+
         if (cp >= 6)
         {
+            audioController.PlayBattleTheme(true);
             g = GameObject.Find("WeakSpotF1");
             g.GetComponent<BossWeakSpot>().isInteractable = false;
         }
@@ -136,6 +140,9 @@ public class GameController : MonoBehaviour
         cameraController.transform.position = t.position;
         cameraController.transform.rotation = t.rotation;
         cameraController.RequestFadeFromBlack();
+
+        if (cp == 0)
+            playerController.SetRolling(1);
 
         isPlayerControllable = true;
         isCameraControllable = true;
