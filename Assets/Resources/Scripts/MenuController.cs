@@ -5,7 +5,12 @@ using UnityEngine.UI;
 
 public class MenuController : MonoBehaviour
 {
+    public static bool LOAD_CREDITS = false;
+
     public Button btn_Continue;
+
+    public GameObject pnl_Credits;
+    public GameObject pnl_Menu;
 
 
     // Use this for initialization
@@ -13,12 +18,19 @@ public class MenuController : MonoBehaviour
     {
         btn_Continue.interactable = CheckpointController.GetLastCheckpoint() != 0;
         Cursor.visible = true;
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
+        if (LOAD_CREDITS)
+        {
+            pnl_Credits.SetActive(true);
+            pnl_Menu.SetActive(false);
+        }
+        else
+        {
+            pnl_Credits.SetActive(false);
+            pnl_Menu.SetActive(true);
+        }
 
+        LOAD_CREDITS = false;
     }
 
     #region GAME_START/LOAD/OPTIONS/QUIT

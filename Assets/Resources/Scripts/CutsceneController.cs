@@ -12,6 +12,12 @@ public class CutsceneController : MonoBehaviour
     public Camera m_Camera;
     public Image m_FadeImage;
 
+    public AudioSource m_Background;
+    public AudioSource m_BackgroundFloresta;
+    public AudioSource m_BackgroundBoss;
+    public AudioSource m_BossBattle;
+    public AudioSource m_BackgroundFim;
+
     private bool skip = false;
 
     private void Awake()
@@ -34,7 +40,15 @@ public class CutsceneController : MonoBehaviour
             StopAllCoroutines();
             StartCoroutine(FadeToBlack(1f));
 
-            LoadingController.LEVEL_TO_LOAD = 1;
+            if (PLAY_END_GAME)
+            {
+                LoadingController.LEVEL_TO_LOAD = -1;
+                CheckpointController.SetLastCheckpoint(0);
+                MenuController.LOAD_CREDITS = true;
+            }
+            else
+                LoadingController.LEVEL_TO_LOAD = 1;
+
             SceneManager.LoadScene("LoadingGame");
         }
     }
@@ -42,6 +56,8 @@ public class CutsceneController : MonoBehaviour
     private IEnumerator PlayEndCutscene()
     {
         int idx = 8;
+
+        m_BackgroundFim.Play();
 
         //-------------- Still 00 ------------------------
         SetupCamPosition(idx);
@@ -68,7 +84,14 @@ public class CutsceneController : MonoBehaviour
         idx++;
         //------------------------------------------------
 
+
+
+        yield return StartCoroutine(FadeToBlack(1.2f));
+        yield return new WaitForSeconds(2f);
+        CheckpointController.SetLastCheckpoint(0);
+
         SceneManager.LoadScene("MainMenu");
+        MenuController.LOAD_CREDITS = true;
 
         yield return 0;
     }
@@ -76,6 +99,8 @@ public class CutsceneController : MonoBehaviour
     private IEnumerator PlayCutscene()
     {
         int idx = 0;
+
+        m_Background.Play();
 
         //-------------- Still 00 ------------------------
         SetupCamPosition(idx);
@@ -103,10 +128,13 @@ public class CutsceneController : MonoBehaviour
 
         //-------------- Still 02 ------------------------
         SetupCamPosition(idx);
+
+        m_BackgroundFloresta.Play();
+
         m_Stills[idx].gameObject.SetActive(true);
-        StartCoroutine(TranslateCamera(-Vector3.forward + Vector3.down * 0.2f, 5f, 1f));
+        StartCoroutine(TranslateCamera(-Vector3.forward + Vector3.down * 0.2f, 7f, 1f));
         yield return StartCoroutine(FadeFromBlack(1f));
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(5f);
         yield return StartCoroutine(FadeToBlack(1f));
         m_Stills[idx].gameObject.SetActive(false);
         idx++;
@@ -118,6 +146,12 @@ public class CutsceneController : MonoBehaviour
         m_Stills[idx].gameObject.SetActive(true);
         StartCoroutine(TranslateCamera(Vector3.forward, 5f, 0.3f));
         yield return StartCoroutine(FadeFromBlack(1f));
+
+        m_BackgroundBoss.Play();
+        m_BossBattle.Play();
+        m_Background.Stop();
+        m_BackgroundFloresta.Stop();
+
         yield return new WaitForSeconds(3f);
         yield return StartCoroutine(FadeToBlack(1f));
         m_Stills[idx].gameObject.SetActive(false);
@@ -127,6 +161,8 @@ public class CutsceneController : MonoBehaviour
 
         //-------------- Still 04 ------------------------
         SetupCamPosition(idx);
+
+
         m_Stills[idx].gameObject.SetActive(true);
         StartCoroutine(TranslateCamera(Vector3.forward, 5f, 0.5f));
         yield return StartCoroutine(FadeFromBlack(1f));
@@ -176,7 +212,10 @@ public class CutsceneController : MonoBehaviour
         m_Stills[idx].gameObject.SetActive(false);
         //------------------------------------------------
 
+
+        yield return StartCoroutine(FadeToBlack(1f));
         LoadingController.LEVEL_TO_LOAD = 1;
+        CheckpointController.SetLastCheckpoint(0);
         SceneManager.LoadScene("LoadingGame");
 
         yield return 0;

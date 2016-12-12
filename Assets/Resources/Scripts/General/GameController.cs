@@ -80,8 +80,10 @@ public class GameController : MonoBehaviour
 
     public void ReturnToMainMenu()
     {
+        LoadingController.LEVEL_TO_LOAD = -1;
+        Time.timeScale = 1f;
         cameraController.RequestFadeToBlack();
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("LoadingGame");
         instance = null;
     }
 
@@ -200,8 +202,12 @@ public class GameController : MonoBehaviour
 
     public void ReloadGame()
     {
+        GameController.instance.isPausable = false;
+        GameController.instance.isPlayerControllable = false;
+        GameController.instance.cameraController.RequestFadeToBlack();
         LoadingController.LEVEL_TO_LOAD = 1;
         SceneManager.LoadScene("LoadingGame");
+        Time.timeScale = 1f;
     }
 
     #endregion

@@ -200,6 +200,7 @@ public class BossController : MonoBehaviour
         GameController.instance.isPlayerControllable = false;
         GameController.instance.isCameraControllable = false;
         GameController.instance.isPausable = false;
+        GameController.instance.playerController.m_CanDie = false;
 
 
         yield return new WaitForSeconds(4f);
@@ -225,35 +226,36 @@ public class BossController : MonoBehaviour
                 yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
                 yield return new WaitForSeconds(10f);
 
+                GameController.instance.playerController.transform.position = GameController.instance.checkpointController.GetCheckpointPosition().position;
+                GameController.instance.playerController.transform.rotation = GameController.instance.checkpointController.GetCheckpointPosition().rotation;
+
                 break;
             case BossPhases.f3:
                 GameController.instance.cameraController.transform.position = m_CameraPositions[1].position;
                 GameController.instance.cameraController.SetLookRotation(m_CameraPositions[1].rotation);
                 m_Anim.SetTrigger("start_f3");
 
-                GameController.instance.playerController.m_CanDie = false;
-                GameController.instance.playerController.transform.position = GameController.instance.checkpointController.GetCheckpointPosition().position;
-                GameController.instance.playerController.transform.rotation = GameController.instance.checkpointController.GetCheckpointPosition().rotation;
 
                 yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
                 yield return new WaitForSeconds(10f);
+
+                GameController.instance.playerController.transform.position = GameController.instance.checkpointController.GetCheckpointPosition().position;
+                GameController.instance.playerController.transform.rotation = GameController.instance.checkpointController.GetCheckpointPosition().rotation;
                 break;
             case BossPhases.f4:
 
                 GameController.instance.cameraController.transform.position = m_CameraPositions[2].position;
                 GameController.instance.cameraController.SetLookRotation(m_CameraPositions[2].rotation);
 
-                GameController.instance.playerController.m_CanDie = false;
-                GameController.instance.playerController.transform.parent = null;
-                GameController.instance.playerController.transform.position = GameController.instance.checkpointController.GetCheckpointPosition().position;
-                GameController.instance.playerController.transform.rotation = GameController.instance.checkpointController.GetCheckpointPosition().rotation;
 
                 m_Anim.SetTrigger("start_f4");
 
                 yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
                 yield return new WaitForSeconds(10f);
 
-                GameController.instance.playerController.m_CanDie = true;
+                GameController.instance.playerController.transform.parent = null;
+                GameController.instance.playerController.transform.position = GameController.instance.checkpointController.GetCheckpointPosition().position;
+                GameController.instance.playerController.transform.rotation = GameController.instance.checkpointController.GetCheckpointPosition().rotation;
                 GameController.instance.bossController.canAttack = true;
                 GameController.instance.bossController.isPlayerNearby = true;
                 break;
@@ -263,18 +265,14 @@ public class BossController : MonoBehaviour
                 GameController.instance.cameraController.transform.position = m_CameraPositions[2].position;
                 GameController.instance.cameraController.SetLookRotation(m_CameraPositions[2].rotation);
 
-                GameController.instance.playerController.m_CanDie = false;
-
-                GameController.instance.playerController.transform.position = GameController.instance.checkpointController.GetCheckpointPosition().position;
-                GameController.instance.playerController.transform.rotation = GameController.instance.checkpointController.GetCheckpointPosition().rotation;
-
                 m_Anim.SetTrigger("end_game");
 
 
                 yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
                 yield return new WaitForSeconds(10f);
 
-                GameController.instance.playerController.m_CanDie = true;
+                GameController.instance.playerController.transform.position = GameController.instance.checkpointController.GetCheckpointPosition().position;
+                GameController.instance.playerController.transform.rotation = GameController.instance.checkpointController.GetCheckpointPosition().rotation;
                 break;
             default:
                 break;
@@ -291,6 +289,9 @@ public class BossController : MonoBehaviour
 
         yield return new WaitForSeconds(1.5f);
         yield return StartCoroutine(GameController.instance.cameraController.FadeFromBlack());
+
+        GameController.instance.playerController.m_CanDie = true;
+
         yield return 0;
     }
 

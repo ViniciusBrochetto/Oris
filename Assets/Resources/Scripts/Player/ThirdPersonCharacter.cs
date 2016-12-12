@@ -483,7 +483,7 @@ public class ThirdPersonCharacter : MonoBehaviour
         // it is also good to note that the transform position in the sample assets is at the base of the character
         if (Physics.Raycast(transform.position + (Vector3.up * 0.1f), Vector3.down, out hitInfo, m_GroundCheckDistance))
         {
-            if (!m_IsGrounded)
+            if (!m_IsGrounded && m_CanDie)
             {
                 if (m_StartJumpHeight - transform.position.y > m_MaxFallHeight)
                 {
@@ -544,22 +544,21 @@ public class ThirdPersonCharacter : MonoBehaviour
 
     IEnumerator Die()
     {
-        if (m_CanDie)
-        {
-            m_AudioController.Damage();
-            m_Rigidbody.isKinematic = true;
-            GameController.instance.isPausable = false;
-            m_RagdollController.SetFullRagdollActive(true);
-            GameController.instance.isPlayerControllable = false;
 
-            yield return new WaitForSeconds(5f);
+        m_AudioController.Damage();
+        m_Rigidbody.isKinematic = true;
+        GameController.instance.isPausable = false;
+        m_RagdollController.SetFullRagdollActive(true);
+        GameController.instance.isPlayerControllable = false;
 
-            GameController.instance.cameraController.RequestFadeToBlack();
+        yield return new WaitForSeconds(5f);
 
-            yield return new WaitForSeconds(1f);
+        GameController.instance.cameraController.RequestFadeToBlack();
 
-            GameController.instance.ReloadGame();
-        }
+        yield return new WaitForSeconds(1f);
+
+        GameController.instance.ReloadGame();
+
         yield return 0;
     }
 

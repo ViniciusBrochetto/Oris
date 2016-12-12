@@ -20,8 +20,10 @@ public class LoadingController : MonoBehaviour
         AsyncOperation loading;
         if (LEVEL_TO_LOAD == 0)
             loading = SceneManager.LoadSceneAsync("Cutscenes");
-        else
+        else if (LEVEL_TO_LOAD == 1)
             loading = SceneManager.LoadSceneAsync("MainGame");
+        else
+            loading = SceneManager.LoadSceneAsync("MainMenu");
 
         loading.allowSceneActivation = false;
 
