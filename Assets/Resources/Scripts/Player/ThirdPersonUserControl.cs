@@ -52,7 +52,7 @@ public class ThirdPersonUserControl : MonoBehaviour
             }
             if (!m_Interact)
             {
-                m_Interact = Input.GetKeyDown(KeyCode.E);
+                m_Interact = Input.GetKeyDown(KeyCode.F);
             }
 
             if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.F))
@@ -60,7 +60,7 @@ public class ThirdPersonUserControl : MonoBehaviour
                 m_ClimbFixed = !m_ClimbFixed;
             }
 
-            m_Climb = !Input.GetKey(KeyCode.F);
+            m_Climb = !Input.GetKey(KeyCode.E);
 
             // read inputs
             float h = CrossPlatformInputManager.GetAxis("Horizontal");

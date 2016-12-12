@@ -118,13 +118,13 @@ public class ThirdPersonCharacter : MonoBehaviour
             m_CanClimb = m_ClimbInfo.handsConnected && m_ClimbInfo.feetConnected;
             m_CanClimb = m_CanClimb && Vector3.Angle(Vector3.up, m_ClimbInfo.avgNormal) > 40f;
 
-            if (m_ClimbInfo.isBoss)
-                GameController.instance.bossController.SetPhase(m_ClimbInfo.parentTransform.tag);
-
             GameController.instance.bossController.SetPlayerClimbing(m_CanClimb && m_ClimbInfo.isBoss);
 
             if (m_CanClimb)
             {
+                if (m_ClimbInfo.isBoss)
+                    GameController.instance.bossController.SetPhase(m_ClimbInfo.parentTransform.tag);
+
                 m_IsClimbing = true;
                 m_Capsule.enabled = false;
                 UpdateGroundHeight();
@@ -518,6 +518,8 @@ public class ThirdPersonCharacter : MonoBehaviour
             }
             else
             {
+                if (GameController.instance.bossController.m_BossPhase == BossController.BossPhases.f1)
+                    GameController.instance.bossController.SetPhase(BossController.BossPhases.f0);
                 this.transform.parent = null;
             }
 

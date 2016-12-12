@@ -19,12 +19,15 @@ public class GameController : MonoBehaviour
     public bool isCameraControllable = true;
     public bool isPlayerControllable = true;
     public bool isPausable = true;
+    public bool isPaused = false;
 
+    public GameObject menuPause;
 
     void Awake()
     {
         if (instance == null)
         {
+            Cursor.visible = false;
             instance = this;
 
             bossController = FindObjectOfType<BossController>();
@@ -35,8 +38,6 @@ public class GameController : MonoBehaviour
             tutorialController = FindObjectOfType<TutorialController>();
             audioController = FindObjectOfType<GameAudioController>();
 
-            CheckpointController.SetLastCheckpoint(4);
-
             StartCoroutine(LoadGame());
         }
         else
@@ -45,19 +46,36 @@ public class GameController : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape) && isPausable)
+        {
+            if (isPaused)
+                ResumeGame();
+            else
+                PauseGame();
+        }
+    }
+
     #region PAUSE/RESUME/RETURN TO MENU/SAVE/LOAD
     public void PauseGame()
     {
+        menuPause.SetActive(true);
         isCameraControllable = false;
         isPlayerControllable = false;
         Time.timeScale = 0f;
+        Cursor.visible = true;
+        isPaused = true;
     }
 
     public void ResumeGame()
     {
+        menuPause.SetActive(false);
         isCameraControllable = true;
         isPlayerControllable = true;
         Time.timeScale = 1f;
+        Cursor.visible = false;
+        isPaused = false;
     }
 
     public void ReturnToMainMenu()
@@ -95,6 +113,8 @@ public class GameController : MonoBehaviour
             case 8:
                 bossController.m_BossPhase = BossController.BossPhases.f4;
                 bossController.m_Anim.Play("anm_boss_idle_f4");
+                GameController.instance.bossController.canAttack = true;
+                GameController.instance.bossController.isPlayerNearby = true;
                 break;
             case 9:
                 bossController.m_BossPhase = BossController.BossPhases.f5;
